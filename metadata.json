@@ -1,0 +1,5 @@
+{
+  "name": "Una Aventura Más Costa Rica",
+  "description": "PWA para venta de tours y aventuras en Costa Rica con sincronización en tiempo real.",
+  "requestFramePermissions": []
+}

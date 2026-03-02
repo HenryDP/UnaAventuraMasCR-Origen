@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'duranhenry1981@gmail.com' || 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    // Site configuration: Public read, Admin write
+    match /config/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Tours: Public read, Admin write
+    match /tours/{tourId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Sales/Reservations: Admin only
+    match /sales/{saleId} {
+      allow read, write: if isAdmin();
+    }
+
+    // User profiles: User read/write their own, Admin read all
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
+  }
+}

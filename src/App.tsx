@@ -1,0 +1,32 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import Home from './pages/Home';
+import Tours from './pages/Tours';
+import TourDetail from './pages/TourDetail';
+import Admin from './pages/Admin';
+import { WhatsAppProvider } from './context/WhatsAppContext';
+import { AuthProvider } from './context/AuthContext';
+
+function App() {
+  return (
+    <AuthProvider>
+      <WhatsAppProvider>
+        <Router>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/tours" element={<Tours />} />
+              <Route path="/tours/:id" element={<TourDetail />} />
+              <Route path="/admin" element={<Admin />} />
+              {/* Fallback for reviews or other pages to Home or a Coming Soon page */}
+              <Route path="*" element={<Home />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </WhatsAppProvider>
+    </AuthProvider>
+  );
+}
+
+export default App;
