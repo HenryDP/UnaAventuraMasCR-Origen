@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Instagram, Facebook, Phone, Mail, MapPin, Menu, X } from 'lucide-react';
+import { Instagram, Facebook, Phone, Mail, MapPin, Menu, X, Edit2 } from 'lucide-react';
 import WhatsAppButton from './WhatsAppButton';
+import { useAuth } from '../context/AuthContext';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { SiteConfig } from './TourCard';
-import { useAuth } from '../context/AuthContext';
 import ConfigModal from './ConfigModal';
-import { Edit2 } from 'lucide-react';
 
 const TikTokIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -17,24 +15,25 @@ const TikTokIcon = () => (
 
 export default function Layout({ children }: { children?: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [siteConfig, setSiteConfig] = useState<SiteConfig | null>(null);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const { isAdmin } = useAuth();
   const location = useLocation();
+  const [siteConfig, setSiteConfig] = useState<any>(null);
 
+  // Escuchar configuración del sitio desde Firebase
   useEffect(() => {
     if (!db) return;
     const unsubscribe = onSnapshot(doc(db, "config", "site"), (snapshot) => {
       if (snapshot.exists()) {
-        setSiteConfig(snapshot.data() as SiteConfig);
+        setSiteConfig(snapshot.data());
       }
     });
     return () => unsubscribe();
   }, []);
 
   const whatsappLink = siteConfig?.whatsappNumber 
-    ? `https://wa.me/${siteConfig.whatsappNumber}` 
-    : "https://wa.me/50688888888";
+    ? https://wa.me/${siteConfig.whatsappNumber} 
+    : "https://wa.me/50687751442";
 
   return (
     <div className="min-h-screen flex flex-col font-sans text-stone-900">
@@ -47,7 +46,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
           </div>
           <button 
             onClick={() => setIsConfigModalOpen(true)}
-            className="flex items-center bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full transition-all"
+            className="flex items-center bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full transition-all cursor-pointer"
           >
             <Edit2 size={12} className="mr-1.5" />
             EDITAR CONFIGURACIÓN GLOBAL
@@ -56,7 +55,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
       )}
 
       {/* Navigation */}
-      <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-[36px]' : 'top-0'} z-50 border-b border-stone-100`}>
+      <nav className={bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-[36px]' : 'top-0'} z-50 border-b border-stone-100}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20">
             <div className="flex items-center">
@@ -73,8 +72,8 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
             
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-8">
-              <Link to="/" className={`text-sm font-bold transition-colors ${location.pathname === '/' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}`}>Inicio</Link>
-              <Link to="/tours" className={`text-sm font-bold transition-colors ${location.pathname === '/tours' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}`}>Tours</Link>
+              <Link to="/" className={text-sm font-bold transition-colors ${location.pathname === '/' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}}>Inicio</Link>
+              <Link to="/tours" className={text-sm font-bold transition-colors ${location.pathname === '/tours' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}}>Tours</Link>
               <Link to="/admin" className="text-sm font-bold text-stone-400 hover:text-stone-600 transition-colors">Admin</Link>
               <a 
                 href={whatsappLink}
@@ -153,8 +152,8 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                   <span className="text-white font-black text-xl">A</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-lg font-black tracking-tighter leading-none text-white">UNA AVENTURA MÁS</span>
-                  <span className="text-[10px] font-bold text-emerald-400 tracking-widest uppercase">Costa Rica</span>
+                  <span className="text-lg font-black tracking-tighter leading-none text-white">{siteConfig?.headerTitle || "UNA AVENTURA MÁS"}</span>
+                  <span className="text-[10px] font-bold text-emerald-400 tracking-widest uppercase">{siteConfig?.headerSubtitle || "Costa Rica"}</span>
                 </div>
               </Link>
               <p className="text-stone-400 max-w-md mb-8 leading-relaxed">
@@ -178,7 +177,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
               <ul className="space-y-4">
                 <li className="flex items-start space-x-3 text-stone-400">
                   <Phone size={18} className="text-emerald-500 mt-1 shrink-0" />
-                  <span>+{siteConfig?.whatsappNumber || "506 8888-8888"}</span>
+                  <span>+{siteConfig?.whatsappNumber || "506 8775-1442"}</span>
                 </li>
                 <li className="flex items-start space-x-3 text-stone-400">
                   <Mail size={18} className="text-emerald-500 mt-1 shrink-0" />
@@ -215,14 +214,13 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
       </footer>
 
       <WhatsAppButton />
-      
-      {siteConfig && (
-        <ConfigModal 
-          config={siteConfig} 
-          isOpen={isConfigModalOpen} 
-          onClose={() => setIsConfigModalOpen(false)} 
-        />
-      )}
+
+      {/* Aquí insertamos el Modal, pero solo se abre si haces clic en el botón */}
+      <ConfigModal 
+        config={siteConfig || {}} 
+        isOpen={isConfigModalOpen} 
+        onClose={() => setIsConfigModalOpen(false)} 
+      />
     </div>
   );
 }
