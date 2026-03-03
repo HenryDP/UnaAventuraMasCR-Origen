@@ -13,7 +13,7 @@ const TikTokIcon = () => (
   </svg>
 );
 
-export default function Layout({ children }: { children?: React.ReactNode }) {
+export default function Layout({ children }: any) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const { isAdmin } = useAuth();
@@ -31,9 +31,11 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const whatsappLink = siteConfig?.whatsappNumber 
-    ? https://wa.me/${siteConfig.whatsappNumber} 
-    : "https://wa.me/50687751442";
+  // Forma más segura de calcular el WhatsApp para que Vercel no falle
+  let whatsappLink = "https://wa.me/50687751442";
+  if (siteConfig && siteConfig.whatsappNumber) {
+    whatsappLink = "https://wa.me/" + siteConfig.whatsappNumber;
+  }
 
   return (
     <div className="min-h-screen flex flex-col font-sans text-stone-900">
@@ -215,7 +217,6 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
 
       <WhatsAppButton />
 
-      {/* Aquí insertamos el Modal, pero solo se abre si haces clic en el botón */}
       <ConfigModal 
         config={siteConfig || {}} 
         isOpen={isConfigModalOpen} 
