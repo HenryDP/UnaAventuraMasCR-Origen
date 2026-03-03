@@ -9,7 +9,7 @@ export default function WhatsAppButton() {
 
   const handleClick = () => {
     const encodedMessage = encodeURIComponent(message);
-    const url = `https://wa.me/+50687751442}?text=${encodedMessage}`;
+    const url = https://wa.me/50687751442?text=${encodedMessage};
     window.open(url, '_blank');
   };
 
