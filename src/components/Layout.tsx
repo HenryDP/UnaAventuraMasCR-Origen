@@ -53,7 +53,7 @@ export default function Layout({ children }: any) {
         </div>
       )}
 
-      <nav className={bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-[36px]' : 'top-0'} z-50 border-b border-stone-100}>
+      <nav className={"bg-white/80 backdrop-blur-md sticky " + (isAdmin ? "top-[36px]" : "top-0") + " z-50 border-b border-stone-100"}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20">
             <div className="flex items-center">
@@ -69,8 +69,8 @@ export default function Layout({ children }: any) {
             </div>
             
             <div className="hidden md:flex items-center space-x-8">
-              <Link to="/" className={text-sm font-bold transition-colors ${location.pathname === '/' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}}>Inicio</Link>
-              <Link to="/tours" className={text-sm font-bold transition-colors ${location.pathname === '/tours' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}}>Tours</Link>
+              <Link to="/" className={"text-sm font-bold transition-colors " + (location.pathname === "/" ? "text-emerald-600" : "text-stone-600 hover:text-emerald-600")}>Inicio</Link>
+              <Link to="/tours" className={"text-sm font-bold transition-colors " + (location.pathname === "/tours" ? "text-emerald-600" : "text-stone-600 hover:text-emerald-600")}>Tours</Link>
               <Link to="/admin" className="text-sm font-bold text-stone-400 hover:text-stone-600 transition-colors">Admin</Link>
               <a 
                 href={whatsappLink}
