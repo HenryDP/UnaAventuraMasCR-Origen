@@ -51,7 +51,7 @@ export default function Layout({ children }: any) {
             EDITAR CONFIGURACIÓN GLOBAL
           </button>
         </div>
-      )}
+      }
 
       <nav className={"bg-white/80 backdrop-blur-md sticky " + (isAdmin ? "top-[36px]" : "top-0") + " z-50 border-b border-stone-100"}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
