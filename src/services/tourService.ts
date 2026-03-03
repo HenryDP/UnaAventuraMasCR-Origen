@@ -149,10 +149,5 @@ export const tourService = {
     if (!db) throw new Error("Firebase not initialized");
     
     return await deleteDoc(doc(db, TOURS_COLLECTION, id));
-  },
-  updateSiteConfig: async (configData: any) => {
-    if (!db) throw new Error("Firebase no inicializado");
-    const docRef = doc(db, "config", "site");
-    return await setDoc(docRef, configData, { merge: true });
-  },
+  }
 };
