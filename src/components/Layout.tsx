@@ -20,7 +20,6 @@ export default function Layout({ children }: any) {
   const location = useLocation();
   const [siteConfig, setSiteConfig] = useState<any>(null);
 
-  // Escuchar configuración del sitio desde Firebase
   useEffect(() => {
     if (!db) return;
     const unsubscribe = onSnapshot(doc(db, "config", "site"), (snapshot) => {
@@ -31,7 +30,6 @@ export default function Layout({ children }: any) {
     return () => unsubscribe();
   }, []);
 
-  // Forma más segura de calcular el WhatsApp para que Vercel no falle
   let whatsappLink = "https://wa.me/50687751442";
   if (siteConfig && siteConfig.whatsappNumber) {
     whatsappLink = "https://wa.me/" + siteConfig.whatsappNumber;
@@ -39,7 +37,6 @@ export default function Layout({ children }: any) {
 
   return (
     <div className="min-h-screen flex flex-col font-sans text-stone-900">
-      {/* Admin Bar */}
       {isAdmin && (
         <div className="bg-emerald-900 text-white px-4 py-2 flex justify-between items-center text-xs font-bold sticky top-0 z-[60] shadow-xl">
           <div className="flex items-center space-x-2">
@@ -56,7 +53,6 @@ export default function Layout({ children }: any) {
         </div>
       )}
 
-      {/* Navigation */}
       <nav className={bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-[36px]' : 'top-0'} z-50 border-b border-stone-100}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20">
@@ -72,7 +68,6 @@ export default function Layout({ children }: any) {
               </Link>
             </div>
             
-            {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-8">
               <Link to="/" className={text-sm font-bold transition-colors ${location.pathname === '/' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}}>Inicio</Link>
               <Link to="/tours" className={text-sm font-bold transition-colors ${location.pathname === '/tours' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}}>Tours</Link>
@@ -87,7 +82,6 @@ export default function Layout({ children }: any) {
               </a>
             </div>
 
-            {/* Mobile menu button */}
             <div className="md:hidden flex items-center">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -99,39 +93,14 @@ export default function Layout({ children }: any) {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden bg-white border-b border-stone-100 animate-in slide-in-from-top duration-300">
             <div className="px-4 pt-2 pb-6 space-y-2">
-              <Link 
-                to="/" 
-                className="block px-4 py-3 text-base font-bold text-stone-900 hover:bg-stone-50 rounded-xl"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Inicio
-              </Link>
-              <Link 
-                to="/tours" 
-                className="block px-4 py-3 text-base font-bold text-stone-900 hover:bg-stone-50 rounded-xl"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Tours
-              </Link>
-              <Link 
-                to="/admin" 
-                className="block px-4 py-3 text-base font-bold text-stone-400 hover:bg-stone-50 rounded-xl"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Admin
-              </Link>
+              <Link to="/" className="block px-4 py-3 text-base font-bold text-stone-900 hover:bg-stone-50 rounded-xl" onClick={() => setIsMenuOpen(false)}>Inicio</Link>
+              <Link to="/tours" className="block px-4 py-3 text-base font-bold text-stone-900 hover:bg-stone-50 rounded-xl" onClick={() => setIsMenuOpen(false)}>Tours</Link>
+              <Link to="/admin" className="block px-4 py-3 text-base font-bold text-stone-400 hover:bg-stone-50 rounded-xl" onClick={() => setIsMenuOpen(false)}>Admin</Link>
               <div className="pt-4">
-                <a 
-                  href={whatsappLink}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="block w-full text-center bg-emerald-600 text-white px-6 py-4 rounded-xl text-base font-bold shadow-lg"
-                  onClick={() => setIsMenuOpen(false)}
-                >
+                <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="block w-full text-center bg-emerald-600 text-white px-6 py-4 rounded-xl text-base font-bold shadow-lg" onClick={() => setIsMenuOpen(false)}>
                   Reservar por WhatsApp
                 </a>
               </div>
@@ -144,7 +113,6 @@ export default function Layout({ children }: any) {
         {children || <Outlet />}
       </main>
 
-      {/* Footer */}
       <footer className="bg-stone-900 text-white pt-20 pb-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
