@@ -12,7 +12,8 @@ import {
   orderBy,
   serverTimestamp
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../lib/firebase';
 import { Tour, SiteConfig } from '../components/TourCard';
 
 const TOURS_COLLECTION = 'tours';
@@ -37,11 +38,6 @@ export const tourService = {
 
     if (options.category) {
       q = query(q, where('category', '==', options.category));
-    }
-
-    if (options.limit) {
-      // limit() is imported from firebase/firestore
-      // I need to make sure it's available.
     }
 
     return onSnapshot(q, (snapshot) => {
@@ -149,5 +145,17 @@ export const tourService = {
     if (!db) throw new Error("Firebase not initialized");
     
     return await deleteDoc(doc(db, TOURS_COLLECTION, id));
+  },
+
+  /**
+   * Subir imagen a Firebase Storage
+   */
+  uploadTourImage: async (file: File): Promise<string> => {
+    if (!storage) throw new Error("Firebase Storage no inicializado");
+    
+    // Crea una referencia única en la carpeta 'tours/'
+    const storageRef = ref(storage, tours/${Date.now()}_${file.name});
+    const snapshot = await uploadBytes(storageRef, file);
+    return await getDownloadURL(snapshot.ref);
   }
 };
