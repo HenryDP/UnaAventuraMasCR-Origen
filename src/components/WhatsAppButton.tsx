@@ -2,14 +2,14 @@ import React from 'react';
 import { useWhatsApp } from '../context/WhatsAppContext';
 
 // Replace with the actual phone number
-const PHONE_NUMBER = "50687751442"; 
+const PHONE_NUMBER = "50612345678"; 
 
 export default function WhatsAppButton() {
   const { message } = useWhatsApp();
 
-const handleClick = () => {
+  const handleClick = () => {
     const encodedMessage = encodeURIComponent(message);
-    const url = https://wa.me/50687751442?text=${encodedMessage};
+    const url = `https://wa.me/${PHONE_NUMBER}?text=${encodedMessage}`;
     window.open(url, '_blank');
   };
 
