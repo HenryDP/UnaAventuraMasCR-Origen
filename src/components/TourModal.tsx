@@ -84,9 +84,12 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
         : urls.join('\n');
       
       setValue('images', newImagesStr);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading images:', error);
-      alert('Error al subir las imágenes.');
+      const errorMessage = error?.message?.includes('storage/unauthorized') 
+        ? 'Error de permisos en Firebase Storage. Por favor revisa las reglas de seguridad.'
+        : 'Error al subir las imágenes. Revisa tu conexión o la configuración de Firebase.';
+      alert(errorMessage);
     } finally {
       setIsUploadingImage(false);
       setUploadProgress(null);
