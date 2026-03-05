@@ -10,16 +10,29 @@ import {
   query, 
   where, 
   orderBy,
+  limit,
   serverTimestamp
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../lib/firebase';
 import { Tour, SiteConfig } from '../components/TourCard';
 import { compressImage } from '../utils/imageUtils';
+import { Unsubscribe } from 'firebase/auth';
 
 const TOURS_COLLECTION = 'tours';
 const CONFIG_COLLECTION = 'config';
 const SITE_CONFIG_DOC = 'site';
+const REVIEWS_COLLECTION = 'reviews';
+
+export interface Review {
+  id: string;
+  tourId: string;
+  userName: string;
+  rating: number;
+  comment: string;
+  createdAt: any;
+  status?: 'approved' | 'pending' | 'rejected';
+}
 
 export const tourService = {
   /**
@@ -173,5 +186,65 @@ export const tourService = {
     const storageRef = ref(storage, `tours/${Date.now()}_${file.name}`);
     const snapshot = await uploadBytes(storageRef, compressedFile);
     return await getDownloadURL(snapshot.ref);
+  },
+
+  /**
+   * Subscribe to reviews for a specific tour
+   */
+  subscribeToTourReviews: (tourId: string, callback: (reviews: Review[]) => void) => {
+    if (!db) return () => {};
+    
+    const q = query(
+      collection(db, REVIEWS_COLLECTION),
+      where('tourId', '==', tourId),
+      orderBy('createdAt', 'desc')
+    );
+
+    return onSnapshot(q, (snapshot) => {
+      const reviews = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Review[];
+      callback(reviews);
+    }, (error) => {
+      console.error("Error listening to reviews:", error);
+    });
+  },
+
+  /**
+   * Add a new review
+   */
+  addReview: async (reviewData: { tourId: string; userName: string; rating: number; comment: string }) => {
+    if (!db) throw new Error("Firebase not initialized");
+    
+    return await addDoc(collection(db, REVIEWS_COLLECTION), {
+      ...reviewData,
+      status: 'approved', // Auto-approve for now
+      createdAt: serverTimestamp()
+    });
+  },
+
+  /**
+   * Subscribe to the latest reviews globally
+   */
+  subscribeToLatestReviews: (limitCount: number, callback: (reviews: Review[]) => void) => {
+    if (!db) return () => {};
+    
+    const q = query(
+      collection(db, REVIEWS_COLLECTION),
+      where('status', '==', 'approved'),
+      orderBy('createdAt', 'desc'),
+      limit(limitCount)
+    );
+
+    return onSnapshot(q, (snapshot) => {
+      const reviews = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Review[];
+      callback(reviews);
+    }, (error) => {
+      console.error("Error listening to latest reviews:", error);
+    });
   }
 };

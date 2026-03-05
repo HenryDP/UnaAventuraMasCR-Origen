@@ -4,6 +4,8 @@ import { motion } from 'motion/react';
 import { ArrowRight, Star } from 'lucide-react';
 import TourList from '../components/TourList';
 import { useWhatsApp } from '../context/WhatsAppContext';
+import ReviewsList from '../components/ReviewsList';
+import ReviewForm from '../components/ReviewForm';
 
 export default function Home() {
   const { siteConfig } = useWhatsApp();
@@ -107,24 +109,18 @@ export default function Home() {
       </section>
 
       {/* Reviews Section */}
-      <section className="py-20 bg-white">
+      <section className="py-24 bg-stone-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-stone-900 mb-16">Lo que dicen nuestros aventureros</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { name: 'María Rodríguez', text: 'Una experiencia increíble en Río Celeste. Todo muy bien organizado y el guía fue excelente.', rating: 5 },
-              { name: 'Juan Carlos Mora', text: 'El tour al Volcán Arenal superó mis expectativas. Las aguas termales son lo mejor.', rating: 5 },
-              { name: 'Elena Vargas', text: 'Excelente servicio y atención. Definitivamente volveré a viajar con ellos.', rating: 4 }
-            ].map((review, i) => (
-              <div key={i} className="bg-stone-50 p-8 rounded-2xl border border-stone-100">
-                <div className="flex text-amber-400 mb-4">
-                  {[...Array(review.rating)].map((_, i) => <Star key={i} size={18} fill="currentColor" />)}
-                </div>
-                <p className="text-stone-600 italic mb-6">"{review.text}"</p>
-                <p className="font-bold text-stone-900">— {review.name}</p>
-              </div>
-            ))}
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-stone-900 mb-4">Lo que dicen nuestros aventureros</h2>
+            <p className="text-stone-600 max-w-2xl mx-auto">
+              La satisfacción de nuestros clientes es nuestra mayor recompensa. Lee sus experiencias reales.
+            </p>
           </div>
+          
+          <ReviewsList />
+          
+          <ReviewForm />
         </div>
       </section>
     </div>
