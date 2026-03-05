@@ -15,6 +15,7 @@ import {
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../lib/firebase';
 import { Tour, SiteConfig } from '../components/TourCard';
+import { compressImage } from '../utils/imageUtils';
 
 const TOURS_COLLECTION = 'tours';
 const CONFIG_COLLECTION = 'config';
@@ -161,13 +162,16 @@ export const tourService = {
   },
 
   /**
-   * Upload an image to Firebase Storage
+   * Upload an image to Firebase Storage with compression
    */
   uploadTourImage: async (file: File): Promise<string> => {
     if (!storage) throw new Error("Firebase Storage not initialized");
     
+    // Compress image before upload
+    const compressedFile = await compressImage(file);
+    
     const storageRef = ref(storage, `tours/${Date.now()}_${file.name}`);
-    const snapshot = await uploadBytes(storageRef, file);
+    const snapshot = await uploadBytes(storageRef, compressedFile);
     return await getDownloadURL(snapshot.ref);
   }
 };

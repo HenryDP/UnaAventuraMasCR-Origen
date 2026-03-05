@@ -14,6 +14,7 @@ interface TourModalProps {
 export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{current: number, total: number} | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { register, handleSubmit, setValue, watch, formState: { isSubmitting } } = useForm<any>({
@@ -65,9 +66,16 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
     if (!files || files.length === 0) return;
 
     setIsUploadingImage(true);
+    setUploadProgress({ current: 0, total: files.length });
     try {
-      const uploadPromises = (Array.from(files) as File[]).map(file => tourService.uploadTourImage(file));
-      const urls = await Promise.all(uploadPromises);
+      const urls: string[] = [];
+      const fileArray = Array.from(files) as File[];
+      
+      for (let i = 0; i < fileArray.length; i++) {
+        setUploadProgress({ current: i + 1, total: fileArray.length });
+        const url = await tourService.uploadTourImage(fileArray[i]);
+        urls.push(url);
+      }
       
       // Get current images string from form
       const currentImagesStr = watch('images') || '';
@@ -81,6 +89,7 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
       alert('Error al subir las imágenes.');
     } finally {
       setIsUploadingImage(false);
+      setUploadProgress(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -245,11 +254,16 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
                     className="flex items-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
                   >
                     {isUploadingImage ? (
-                      <Loader2 size={14} className="animate-spin" />
+                      <div className="flex items-center gap-2">
+                        <Loader2 size={14} className="animate-spin" />
+                        <span className="text-[10px]">
+                          {uploadProgress ? `Subiendo ${uploadProgress.current}/${uploadProgress.total}...` : 'Comprimiendo...'}
+                        </span>
+                      </div>
                     ) : (
                       <ImageIcon size={14} />
                     )}
-                    Subir desde Galería
+                    {isUploadingImage ? '' : 'Subir desde Galería'}
                   </button>
                 </div>
               </div>
