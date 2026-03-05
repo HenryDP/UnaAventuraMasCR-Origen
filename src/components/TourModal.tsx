@@ -16,18 +16,28 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { register, handleSubmit, setValue, watch, formState: { isSubmitting } } = useForm<Partial<Tour>>({
-    defaultValues: tour || {
+  const { register, handleSubmit, setValue, watch, formState: { isSubmitting } } = useForm<any>({
+    defaultValues: tour ? {
+      ...tour,
+      images: Array.isArray(tour.images) ? tour.images.join('\n') : tour.images,
+      included: Array.isArray(tour.included) ? tour.included.join('\n') : tour.included,
+      recommendations: Array.isArray(tour.recommendations) ? tour.recommendations.join('\n') : tour.recommendations,
+      pickupLocations: Array.isArray(tour.pickupLocations) ? tour.pickupLocations.join('\n') : tour.pickupLocations,
+    } : {
       active: true,
       category: 'nacional',
-      images: [],
-      included: [],
-      recommendations: [],
-      pickupLocations: []
+      images: '',
+      included: '',
+      recommendations: '',
+      pickupLocations: ''
     }
   });
 
-  const currentImages = watch('images') || [];
+  const imagesValue = watch('images') || '';
+  const currentImages = typeof imagesValue === 'string' 
+    ? imagesValue.split('\n').filter(i => i.trim()) 
+    : (Array.isArray(imagesValue) ? imagesValue : []);
+  
   const location = watch('location');
   const title = watch('title');
 
@@ -59,14 +69,13 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
       const uploadPromises = (Array.from(files) as File[]).map(file => tourService.uploadTourImage(file));
       const urls = await Promise.all(uploadPromises);
       
-      // Get current images from form
-      const imagesField = watch('images');
-      const currentImagesList = Array.isArray(imagesField) 
-        ? imagesField 
-        : (typeof imagesField === 'string' ? (imagesField as string).split('\n').filter(i => i.trim()) : []);
+      // Get current images string from form
+      const currentImagesStr = watch('images') || '';
+      const newImagesStr = currentImagesStr 
+        ? `${currentImagesStr}\n${urls.join('\n')}`
+        : urls.join('\n');
       
-      const newImages = [...currentImagesList, ...urls];
-      setValue('images', newImages);
+      setValue('images', newImagesStr);
     } catch (error) {
       console.error('Error uploading images:', error);
       alert('Error al subir las imágenes.');
@@ -78,17 +87,17 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
 
   const onSubmit = async (data: any) => {
     try {
-      // Process arrays if they are strings (from textarea)
+      // Process arrays from strings (from textarea)
       const formattedData = {
         ...data,
         price: {
           crc: Number(data.price?.crc || 0),
           usd: Number(data.price?.usd || 0)
         },
-        images: typeof data.images === 'string' ? data.images.split('\n').filter((i: string) => i.trim()) : data.images,
-        included: typeof data.included === 'string' ? data.included.split('\n').filter((i: string) => i.trim()) : data.included,
-        recommendations: typeof data.recommendations === 'string' ? data.recommendations.split('\n').filter((i: string) => i.trim()) : data.recommendations,
-        pickupLocations: typeof data.pickupLocations === 'string' ? data.pickupLocations.split('\n').filter((i: string) => i.trim()) : data.pickupLocations,
+        images: typeof data.images === 'string' ? data.images.split('\n').map(i => i.trim()).filter(Boolean) : data.images,
+        included: typeof data.included === 'string' ? data.included.split('\n').map(i => i.trim()).filter(Boolean) : data.included,
+        recommendations: typeof data.recommendations === 'string' ? data.recommendations.split('\n').map(i => i.trim()).filter(Boolean) : data.recommendations,
+        pickupLocations: typeof data.pickupLocations === 'string' ? data.pickupLocations.split('\n').map(i => i.trim()).filter(Boolean) : data.pickupLocations,
       };
 
       if (tour?.id) {
@@ -247,7 +256,6 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
               
               <div className="space-y-3">
                 <textarea 
-                  defaultValue={Array.isArray(tour?.images) ? tour?.images?.join('\n') : tour?.images}
                   {...register('images')} 
                   rows={4} 
                   className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none font-mono text-[10px] bg-stone-50" 
@@ -257,14 +265,14 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
                 {/* Image Preview Grid */}
                 {currentImages.length > 0 && (
                   <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-2">
-                    {currentImages.map((url, idx) => (
+                    {currentImages.map((url: string, idx: number) => (
                       <div key={idx} className="aspect-square rounded-lg overflow-hidden border border-stone-200 bg-stone-100 group relative">
                         <img src={url} alt={`Preview ${idx}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         <button
                           type="button"
                           onClick={() => {
-                            const newImages = currentImages.filter((_, i) => i !== idx);
-                            setValue('images', newImages);
+                            const newImages = currentImages.filter((_: any, i: number) => i !== idx);
+                            setValue('images', newImages.join('\n'));
                           }}
                           className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                         >
@@ -280,7 +288,6 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
               <div>
                 <label className="block text-xs font-bold text-stone-500 uppercase mb-1">¿Qué incluye? (Línea)</label>
                 <textarea 
-                  defaultValue={tour?.included?.join('\n')}
                   {...register('included')} 
                   rows={4} 
                   className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" 
@@ -289,7 +296,6 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
               <div>
                 <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Recomendaciones (Línea)</label>
                 <textarea 
-                  defaultValue={tour?.recommendations?.join('\n')}
                   {...register('recommendations')} 
                   rows={4} 
                   className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" 
@@ -298,7 +304,6 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
               <div>
                 <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Puntos de Salida (Línea)</label>
                 <textarea 
-                  defaultValue={tour?.pickupLocations?.join('\n')}
                   {...register('pickupLocations')} 
                   rows={4} 
                   className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" 

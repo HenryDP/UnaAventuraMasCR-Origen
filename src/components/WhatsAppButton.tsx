@@ -1,15 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useWhatsApp } from '../context/WhatsAppContext';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { SiteConfig } from './TourCard';
 
-// Replace with the actual phone number
-const PHONE_NUMBER = "50612345678"; 
+// Default phone number if not set in config
+const DEFAULT_PHONE_NUMBER = "50687751442"; 
 
 export default function WhatsAppButton() {
   const { message } = useWhatsApp();
+  const [siteConfig, setSiteConfig] = useState<SiteConfig | null>(null);
+
+  useEffect(() => {
+    if (!db) return;
+    const unsubscribe = onSnapshot(doc(db, "config", "site"), (snapshot) => {
+      if (snapshot.exists()) {
+        setSiteConfig(snapshot.data() as SiteConfig);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleClick = () => {
+    const phoneNumber = siteConfig?.whatsappNumber || DEFAULT_PHONE_NUMBER;
+    // Remove non-numeric characters just in case
+    const cleanNumber = phoneNumber.replace(/\D/g, '');
     const encodedMessage = encodeURIComponent(message);
-    const url = `https://wa.me/${PHONE_NUMBER}?text=${encodedMessage}`;
+    const url = `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
     window.open(url, '_blank');
   };
 

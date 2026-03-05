@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Instagram, Facebook, Phone, Mail, MapPin, Menu, X, Edit2 } from 'lucide-react';
+import { Instagram, Facebook, Phone, Mail, MapPin, Menu, X } from 'lucide-react';
 import WhatsAppButton from './WhatsAppButton';
-import { useAuth } from '../context/AuthContext';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { SiteConfig } from './TourCard';
+import { useAuth } from '../context/AuthContext';
 import ConfigModal from './ConfigModal';
+import { Edit2 } from 'lucide-react';
 
 const TikTokIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -13,30 +15,30 @@ const TikTokIcon = () => (
   </svg>
 );
 
-export default function Layout({ children }: any) {
+export default function Layout({ children }: { children?: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [siteConfig, setSiteConfig] = useState<SiteConfig | null>(null);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const { isAdmin } = useAuth();
   const location = useLocation();
-  const [siteConfig, setSiteConfig] = useState<any>(null);
 
   useEffect(() => {
     if (!db) return;
     const unsubscribe = onSnapshot(doc(db, "config", "site"), (snapshot) => {
       if (snapshot.exists()) {
-        setSiteConfig(snapshot.data());
+        setSiteConfig(snapshot.data() as SiteConfig);
       }
     });
     return () => unsubscribe();
   }, []);
 
-  let whatsappLink = "https://wa.me/50687751442";
-  if (siteConfig && siteConfig.whatsappNumber) {
-    whatsappLink = "https://wa.me/" + siteConfig.whatsappNumber;
-  }
+  const whatsappLink = siteConfig?.whatsappNumber 
+    ? `https://wa.me/${siteConfig.whatsappNumber.replace(/\D/g, '')}` 
+    : "https://wa.me/50687751442";
 
   return (
     <div className="min-h-screen flex flex-col font-sans text-stone-900">
+      {/* Admin Bar */}
       {isAdmin && (
         <div className="bg-emerald-900 text-white px-4 py-2 flex justify-between items-center text-xs font-bold sticky top-0 z-[60] shadow-xl">
           <div className="flex items-center space-x-2">
@@ -45,7 +47,7 @@ export default function Layout({ children }: any) {
           </div>
           <button 
             onClick={() => setIsConfigModalOpen(true)}
-            className="flex items-center bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full transition-all cursor-pointer"
+            className="flex items-center bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full transition-all"
           >
             <Edit2 size={12} className="mr-1.5" />
             EDITAR CONFIGURACIÓN GLOBAL
@@ -53,7 +55,8 @@ export default function Layout({ children }: any) {
         </div>
       )}
 
-      <nav className={"bg-white/80 backdrop-blur-md sticky " + (isAdmin ? "top-[36px]" : "top-0") + " z-50 border-b border-stone-100"}>
+      {/* Navigation */}
+      <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-[36px]' : 'top-0'} z-50 border-b border-stone-100`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20">
             <div className="flex items-center">
@@ -68,9 +71,10 @@ export default function Layout({ children }: any) {
               </Link>
             </div>
             
+            {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-8">
-              <Link to="/" className={"text-sm font-bold transition-colors " + (location.pathname === "/" ? "text-emerald-600" : "text-stone-600 hover:text-emerald-600")}>Inicio</Link>
-              <Link to="/tours" className={"text-sm font-bold transition-colors " + (location.pathname === "/tours" ? "text-emerald-600" : "text-stone-600 hover:text-emerald-600")}>Tours</Link>
+              <Link to="/" className={`text-sm font-bold transition-colors ${location.pathname === '/' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}`}>Inicio</Link>
+              <Link to="/tours" className={`text-sm font-bold transition-colors ${location.pathname === '/tours' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}`}>Tours</Link>
               <Link to="/admin" className="text-sm font-bold text-stone-400 hover:text-stone-600 transition-colors">Admin</Link>
               <a 
                 href={whatsappLink}
@@ -82,6 +86,7 @@ export default function Layout({ children }: any) {
               </a>
             </div>
 
+            {/* Mobile menu button */}
             <div className="md:hidden flex items-center">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -93,14 +98,39 @@ export default function Layout({ children }: any) {
           </div>
         </div>
 
+        {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden bg-white border-b border-stone-100 animate-in slide-in-from-top duration-300">
             <div className="px-4 pt-2 pb-6 space-y-2">
-              <Link to="/" className="block px-4 py-3 text-base font-bold text-stone-900 hover:bg-stone-50 rounded-xl" onClick={() => setIsMenuOpen(false)}>Inicio</Link>
-              <Link to="/tours" className="block px-4 py-3 text-base font-bold text-stone-900 hover:bg-stone-50 rounded-xl" onClick={() => setIsMenuOpen(false)}>Tours</Link>
-              <Link to="/admin" className="block px-4 py-3 text-base font-bold text-stone-400 hover:bg-stone-50 rounded-xl" onClick={() => setIsMenuOpen(false)}>Admin</Link>
+              <Link 
+                to="/" 
+                className="block px-4 py-3 text-base font-bold text-stone-900 hover:bg-stone-50 rounded-xl"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Inicio
+              </Link>
+              <Link 
+                to="/tours" 
+                className="block px-4 py-3 text-base font-bold text-stone-900 hover:bg-stone-50 rounded-xl"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Tours
+              </Link>
+              <Link 
+                to="/admin" 
+                className="block px-4 py-3 text-base font-bold text-stone-400 hover:bg-stone-50 rounded-xl"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Admin
+              </Link>
               <div className="pt-4">
-                <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="block w-full text-center bg-emerald-600 text-white px-6 py-4 rounded-xl text-base font-bold shadow-lg" onClick={() => setIsMenuOpen(false)}>
+                <a 
+                  href={whatsappLink}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block w-full text-center bg-emerald-600 text-white px-6 py-4 rounded-xl text-base font-bold shadow-lg"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   Reservar por WhatsApp
                 </a>
               </div>
@@ -113,6 +143,7 @@ export default function Layout({ children }: any) {
         {children || <Outlet />}
       </main>
 
+      {/* Footer */}
       <footer className="bg-stone-900 text-white pt-20 pb-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
@@ -122,8 +153,8 @@ export default function Layout({ children }: any) {
                   <span className="text-white font-black text-xl">A</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-lg font-black tracking-tighter leading-none text-white">{siteConfig?.headerTitle || "UNA AVENTURA MÁS"}</span>
-                  <span className="text-[10px] font-bold text-emerald-400 tracking-widest uppercase">{siteConfig?.headerSubtitle || "Costa Rica"}</span>
+                  <span className="text-lg font-black tracking-tighter leading-none text-white">UNA AVENTURA MÁS</span>
+                  <span className="text-[10px] font-bold text-emerald-400 tracking-widest uppercase">Costa Rica</span>
                 </div>
               </Link>
               <p className="text-stone-400 max-w-md mb-8 leading-relaxed">
@@ -147,7 +178,7 @@ export default function Layout({ children }: any) {
               <ul className="space-y-4">
                 <li className="flex items-start space-x-3 text-stone-400">
                   <Phone size={18} className="text-emerald-500 mt-1 shrink-0" />
-                  <span>+{siteConfig?.whatsappNumber || "506 8775-1442"}</span>
+                  <span>+{siteConfig?.whatsappNumber || "506 8888-8888"}</span>
                 </li>
                 <li className="flex items-start space-x-3 text-stone-400">
                   <Mail size={18} className="text-emerald-500 mt-1 shrink-0" />
@@ -184,12 +215,14 @@ export default function Layout({ children }: any) {
       </footer>
 
       <WhatsAppButton />
-
-      <ConfigModal 
-        config={siteConfig || {}} 
-        isOpen={isConfigModalOpen} 
-        onClose={() => setIsConfigModalOpen(false)} 
-      />
+      
+      {siteConfig && (
+        <ConfigModal 
+          config={siteConfig} 
+          isOpen={isConfigModalOpen} 
+          onClose={() => setIsConfigModalOpen(false)} 
+        />
+      )}
     </div>
   );
 }
