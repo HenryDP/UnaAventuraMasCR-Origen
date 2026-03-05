@@ -6,6 +6,7 @@ import Tours from './pages/Tours';
 import TourDetail from './pages/TourDetail';
 import Admin from './pages/Admin';
 import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import { WhatsAppProvider } from './context/WhatsAppContext';
 import { AuthProvider } from './context/AuthContext';
 
@@ -21,6 +22,7 @@ function App() {
               <Route path="/tours/:id" element={<TourDetail />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/privacidad" element={<Privacy />} />
+              <Route path="/terminos" element={<Terms />} />
               {/* Fallback for reviews or other pages to Home or a Coming Soon page */}
               <Route path="*" element={<Home />} />
             </Routes>

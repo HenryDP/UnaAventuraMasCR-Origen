@@ -208,7 +208,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
             </p>
             <div className="flex space-x-6 text-stone-500 text-sm">
               <Link to="/privacidad" className="hover:text-emerald-400">Privacidad</Link>
-              <a href="#" className="hover:text-emerald-400">Términos</a>
+              <Link to="/terminos" className="hover:text-emerald-400">Términos</Link>
             </div>
           </div>
         </div>
