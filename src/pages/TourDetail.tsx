@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { tourService } from '../services/tourService';
 import { Tour, SiteConfig } from '../components/TourCard';
-import { MapPin, Clock, Calendar, ArrowLeft, CheckCircle, AlertCircle, Bus, CreditCard, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
+import { MapPin, Clock, Calendar, ArrowLeft, CheckCircle, AlertCircle, Bus, CreditCard, ChevronLeft, ChevronRight, Edit2, Share2 } from 'lucide-react';
 import { useWhatsApp } from '../context/WhatsAppContext';
 import { useAuth } from '../context/AuthContext';
 import TourModal from '../components/TourModal';
+import ShareModal from '../components/ShareModal';
+import ReviewSection from '../components/ReviewSection';
 
 export default function TourDetail() {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +16,7 @@ export default function TourDetail() {
   const [loading, setLoading] = useState(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const { isAdmin } = useAuth();
   const { setMessage, resetMessage } = useWhatsApp();
 
@@ -129,20 +132,41 @@ export default function TourDetail() {
                 <ArrowLeft size={20} className="mr-2" />
                 Volver
               </Link>
-              {isAdmin && (
+              <div className="flex items-center gap-3">
                 <button 
-                  onClick={() => setIsEditModalOpen(true)}
+                  onClick={() => setIsShareModalOpen(true)}
                   className="bg-white/20 hover:bg-white/40 text-white px-4 py-2 rounded-xl backdrop-blur-md flex items-center font-bold text-sm transition-all"
                 >
-                  <Edit2 size={16} className="mr-2" />
-                  EDITAR TOUR
+                  <Share2 size={16} className="mr-2" />
+                  COMPARTIR
                 </button>
-              )}
+                {isAdmin && (
+                  <button 
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="bg-white/20 hover:bg-white/40 text-white px-4 py-2 rounded-xl backdrop-blur-md flex items-center font-bold text-sm transition-all"
+                  >
+                    <Edit2 size={16} className="mr-2" />
+                    EDITAR TOUR
+                  </button>
+                )}
+              </div>
             </div>
             <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">{tour.title}</h1>
             <div className="flex flex-wrap items-center text-white/90 gap-6">
               <span className="flex items-center"><MapPin size={18} className="mr-2 text-emerald-400" /> {tour.location}</span>
               <span className="flex items-center"><Clock size={18} className="mr-2 text-emerald-400" /> {tour.duration}</span>
+              {tour.distance && (
+                <span className="flex items-center">
+                  <span className="w-5 h-5 flex items-center justify-center mr-2 bg-emerald-400/20 rounded text-[10px] font-bold text-emerald-400 border border-emerald-400/30">KM</span>
+                  {tour.distance}
+                </span>
+              )}
+              {tour.difficulty && (
+                <span className="flex items-center">
+                  <AlertCircle size={18} className="mr-2 text-emerald-400" />
+                  <span className="capitalize">{tour.difficulty}</span>
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -159,6 +183,28 @@ export default function TourDetail() {
                 {tour.description}
               </p>
             </div>
+
+            {tour.images && tour.images.length > 1 && (
+              <div className="bg-white rounded-xl shadow-sm p-8">
+                <h2 className="text-2xl font-bold text-stone-900 mb-6">Galería de Fotos</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {tour.images.map((img, idx) => (
+                    <button 
+                      key={idx}
+                      onClick={() => setActiveImageIndex(idx)}
+                      className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${idx === activeImageIndex ? 'border-emerald-500 scale-95' : 'border-transparent hover:border-emerald-200'}`}
+                    >
+                      <img 
+                        src={img} 
+                        alt={`${tour.title} gallery ${idx}`} 
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-xl shadow-sm p-6">
@@ -206,6 +252,9 @@ export default function TourDetail() {
                 ))}
               </ul>
             </div>
+
+            {/* Reviews Section */}
+            <ReviewSection tourId={tour.id} />
           </div>
 
           {/* Sidebar Booking */}
@@ -276,6 +325,14 @@ export default function TourDetail() {
         tour={tour} 
         isOpen={isEditModalOpen} 
         onClose={() => setIsEditModalOpen(false)} 
+      />
+
+      <ShareModal 
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        url={`${window.location.origin}/tours/${tour.id}`}
+        title={tour.title}
+        description={tour.description}
       />
     </div>
   );

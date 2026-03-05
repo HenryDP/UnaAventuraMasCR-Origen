@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Clock, DollarSign, Edit2, Share2 } from 'lucide-react';
+import { MapPin, Clock, DollarSign, Edit2, Share2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import TourModal from './TourModal';
 import ShareModal from './ShareModal';
@@ -21,6 +21,8 @@ export interface Tour {
   createdAt: any;
   duration: string;
   location: string;
+  distance?: string;
+  difficulty?: 'principiante' | 'intermedio' | 'avanzado';
   category: 'nacional' | 'internacional';
   paymentLink: string;
   reserveLink?: string;
@@ -92,6 +94,22 @@ const TourCard: React.FC<TourCardProps> = ({ tour }) => {
             <Clock size={14} className="mr-1.5 text-emerald-600" />
             {tour.duration}
           </div>
+          {(tour.distance || tour.difficulty) && (
+            <div className="flex items-center gap-3 pt-1">
+              {tour.distance && (
+                <div className="flex items-center text-[10px] font-bold text-stone-400 uppercase">
+                  <span className="bg-stone-100 px-1.5 py-0.5 rounded mr-1">KM</span>
+                  {tour.distance}
+                </div>
+              )}
+              {tour.difficulty && (
+                <div className="flex items-center text-[10px] font-bold text-emerald-600 uppercase">
+                  <AlertCircle size={12} className="mr-1" />
+                  {tour.difficulty}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-stone-100 mt-auto">
