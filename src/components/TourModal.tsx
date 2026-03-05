@@ -334,7 +334,7 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Puntos de Salida (Línea)</label>
+                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Puntos de Salida / Bus o Microbús (Línea)</label>
                 <textarea 
                   {...register('pickupLocations')} 
                   rows={4} 

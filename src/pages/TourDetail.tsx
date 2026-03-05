@@ -241,7 +241,7 @@ export default function TourDetail() {
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-bold text-stone-900 mb-4 flex items-center">
                 <Bus className="mr-2 text-blue-500" size={20} />
-                Puntos de Salida / Pickup
+                Puntos de Salida / Bus o Microbús
               </h3>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-stone-600">
                 {tour.pickupLocations?.map((item, index) => (
