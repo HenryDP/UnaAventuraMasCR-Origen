@@ -9,6 +9,7 @@ import {
   setDoc,
   query, 
   where, 
+  orderBy,
   serverTimestamp
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -29,7 +30,6 @@ export const tourService = {
   ) => {
     if (!db) return () => {};
     
-    // Solo pedimos los activos y la categoría, SIN orderBy
     let q = query(
       collection(db, TOURS_COLLECTION),
       where('active', '==', true)
@@ -45,9 +45,13 @@ export const tourService = {
         ...doc.data()
       })) as Tour[];
       
-      // ORDENAMIENTO EN MEMORIA (¡La magia para evitar el error de índices!)
-      tours.sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-      
+      // Sort in memory to avoid needing a composite index in Firestore
+      tours.sort((a, b) => {
+        const dateA = a.createdAt?.seconds || 0;
+        const dateB = b.createdAt?.seconds || 0;
+        return dateB - dateA;
+      });
+
       if (options.limit) {
         tours = tours.slice(0, options.limit);
       }
@@ -64,19 +68,22 @@ export const tourService = {
   subscribeToAllTours: (callback: (tours: Tour[]) => void) => {
     if (!db) return () => {};
     
-    // Sin orderBy para no requerir índices
     const q = query(
       collection(db, TOURS_COLLECTION)
     );
 
     return onSnapshot(q, (snapshot) => {
-      let tours = snapshot.docs.map(doc => ({
+      const tours = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Tour[];
 
-      // Ordenamos en memoria también aquí
-      tours.sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+      // Sort in memory
+      tours.sort((a, b) => {
+        const dateA = a.createdAt?.seconds || 0;
+        const dateB = b.createdAt?.seconds || 0;
+        return dateB - dateA;
+      });
 
       callback(tours);
     }, (error) => {
@@ -154,13 +161,12 @@ export const tourService = {
   },
 
   /**
-   * Subir imagen a Firebase Storage
+   * Upload an image to Firebase Storage
    */
   uploadTourImage: async (file: File): Promise<string> => {
-    if (!storage) throw new Error("Firebase Storage no inicializado");
+    if (!storage) throw new Error("Firebase Storage not initialized");
     
-    // Crea una referencia única en la carpeta 'tours/'
-    const storageRef = ref(storage, tours/${Date.now()}_${file.name});
+    const storageRef = ref(storage, `tours/${Date.now()}_${file.name}`);
     const snapshot = await uploadBytes(storageRef, file);
     return await getDownloadURL(snapshot.ref);
   }
