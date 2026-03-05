@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Clock, DollarSign, Edit2 } from 'lucide-react';
+import { MapPin, Clock, DollarSign, Edit2, Share2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import TourModal from './TourModal';
+import ShareModal from './ShareModal';
 
 export interface Tour {
   id: string;
@@ -47,6 +48,7 @@ interface TourCardProps {
 
 const TourCard: React.FC<TourCardProps> = ({ tour }) => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
   const { isAdmin } = useAuth();
   const isSoldOut = !tour.active;
   const mainImage = tour.images?.[0] || 'https://picsum.photos/seed/tour/800/600';
@@ -100,12 +102,21 @@ const TourCard: React.FC<TourCardProps> = ({ tour }) => {
               {tour.price?.crc?.toLocaleString() || 0}
             </div>
           </div>
-          <Link 
-            to={`/tours/${tour.id}`}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors"
-          >
-            Ver Detalles
-          </Link>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setIsShareModalOpen(true)}
+              className="p-2 text-stone-400 hover:text-emerald-600 transition-colors"
+              title="Compartir"
+            >
+              <Share2 size={18} />
+            </button>
+            <Link 
+              to={`/tours/${tour.id}`}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors"
+            >
+              Ver Detalles
+            </Link>
+          </div>
         </div>
       </div>
       
@@ -113,6 +124,14 @@ const TourCard: React.FC<TourCardProps> = ({ tour }) => {
         tour={tour} 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
+      />
+
+      <ShareModal 
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        url={`${window.location.origin}/tours/${tour.id}`}
+        title={tour.title}
+        description={tour.description}
       />
     </div>
   );
