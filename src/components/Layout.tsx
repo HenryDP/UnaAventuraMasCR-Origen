@@ -207,7 +207,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
               © {new Date().getFullYear()} {siteConfig?.footerCopyright || "Una Aventura Más Costa Rica. Todos los derechos reservados."}
             </p>
             <div className="flex space-x-6 text-stone-500 text-sm">
-              <a href="#" className="hover:text-emerald-400">Privacidad</a>
+              <Link to="/privacidad" className="hover:text-emerald-400">Privacidad</Link>
               <a href="#" className="hover:text-emerald-400">Términos</a>
             </div>
           </div>
