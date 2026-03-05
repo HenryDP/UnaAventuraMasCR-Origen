@@ -9,7 +9,6 @@ import {
   setDoc,
   query, 
   where, 
-  orderBy,
   serverTimestamp
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -30,10 +29,10 @@ export const tourService = {
   ) => {
     if (!db) return () => {};
     
+    // Solo pedimos los activos y la categoría, SIN orderBy
     let q = query(
       collection(db, TOURS_COLLECTION),
-      where('active', '==', true),
-      orderBy('createdAt', 'desc')
+      where('active', '==', true)
     );
 
     if (options.category) {
@@ -45,6 +44,9 @@ export const tourService = {
         id: doc.id,
         ...doc.data()
       })) as Tour[];
+      
+      // ORDENAMIENTO EN MEMORIA (¡La magia para evitar el error de índices!)
+      tours.sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
       
       if (options.limit) {
         tours = tours.slice(0, options.limit);
@@ -62,16 +64,20 @@ export const tourService = {
   subscribeToAllTours: (callback: (tours: Tour[]) => void) => {
     if (!db) return () => {};
     
+    // Sin orderBy para no requerir índices
     const q = query(
-      collection(db, TOURS_COLLECTION),
-      orderBy('createdAt', 'desc')
+      collection(db, TOURS_COLLECTION)
     );
 
     return onSnapshot(q, (snapshot) => {
-      const tours = snapshot.docs.map(doc => ({
+      let tours = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Tour[];
+
+      // Ordenamos en memoria también aquí
+      tours.sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
       callback(tours);
     }, (error) => {
       console.error("Error listening to all tours:", error);
