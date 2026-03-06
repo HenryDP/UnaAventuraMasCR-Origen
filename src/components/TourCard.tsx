@@ -77,11 +77,11 @@ const TourCard: React.FC<TourCardProps> = ({ tour }) => {
           No Disponible
         </div>
       )}
-      <div className="relative h-48 w-full shrink-0">
+      <div className="relative aspect-[4/3] w-full shrink-0 bg-stone-100 overflow-hidden">
         <img 
           src={mainImage} 
           alt={tour.title} 
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
           referrerPolicy="no-referrer"
           loading="lazy"
         />

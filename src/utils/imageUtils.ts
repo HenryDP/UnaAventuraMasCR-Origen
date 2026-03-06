@@ -43,32 +43,27 @@ export const compressImage = async (file: File): Promise<File | Blob> => {
             return;
           }
 
-          // Target: 1200x900 (4:3) - Good balance between quality and speed
-          const targetWidth = 1200;
-          const targetHeight = 900;
-          const targetRatio = targetWidth / targetHeight;
+          // Target: Max 1200px on the longest side while maintaining aspect ratio
+          const maxDimension = 1200;
+          let targetWidth = img.width;
+          let targetHeight = img.height;
+
+          if (img.width > img.height) {
+            if (img.width > maxDimension) {
+              targetWidth = maxDimension;
+              targetHeight = (img.height * maxDimension) / img.width;
+            }
+          } else {
+            if (img.height > maxDimension) {
+              targetHeight = maxDimension;
+              targetWidth = (img.width * maxDimension) / img.height;
+            }
+          }
           
           canvas.width = targetWidth;
           canvas.height = targetHeight;
 
-          const imgRatio = img.width / img.height;
-          let drawWidth, drawHeight, offsetX, offsetY;
-
-          if (imgRatio > targetRatio) {
-            // Image is wider than 4:3
-            drawHeight = img.height;
-            drawWidth = img.height * targetRatio;
-            offsetX = (img.width - drawWidth) / 2;
-            offsetY = 0;
-          } else {
-            // Image is taller than 4:3
-            drawWidth = img.width;
-            drawHeight = img.width / targetRatio;
-            offsetX = 0;
-            offsetY = (img.height - drawHeight) / 2;
-          }
-
-          ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight, 0, 0, targetWidth, targetHeight);
+          ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, targetWidth, targetHeight);
 
           canvas.toBlob((blob) => {
             cleanup();

@@ -89,7 +89,7 @@ export default function TourDetail() {
             <img 
               src={tour.images[activeImageIndex]} 
               alt={`${tour.title} - ${activeImageIndex + 1}`} 
-              className="w-full h-full object-cover opacity-80"
+              className="w-full h-full object-contain"
               referrerPolicy="no-referrer"
               loading="lazy"
             />

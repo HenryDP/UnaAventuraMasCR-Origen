@@ -14,6 +14,9 @@ interface TourModalProps {
 export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isEditingImageAI, setIsEditingImageAI] = useState(false);
+  const [pendingImage, setPendingImage] = useState<File | null>(null);
+  const [aiImagePrompt, setAiImagePrompt] = useState('Mejora esta imagen para un tour turístico, hazla vibrante y profesional.');
   const [uploadProgress, setUploadProgress] = useState<{current: number, total: number} | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,11 +68,21 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    // If only one image is selected, offer AI editing
+    if (files.length === 1) {
+      setPendingImage(files[0]);
+      return;
+    }
+
+    // Otherwise, upload all as usual
+    await processAndUploadImages(Array.from(files));
+  };
+
+  const processAndUploadImages = async (fileArray: File[]) => {
     setIsUploadingImage(true);
-    setUploadProgress({ current: 0, total: files.length });
+    setUploadProgress({ current: 0, total: fileArray.length });
     try {
       const urls: string[] = [];
-      const fileArray = Array.from(files) as File[];
       
       for (let i = 0; i < fileArray.length; i++) {
         setUploadProgress({ current: i + 1, total: fileArray.length });
@@ -77,7 +90,6 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
         urls.push(url);
       }
       
-      // Get current images string from form
       const currentImagesStr = watch('images') || '';
       const newImagesStr = currentImagesStr 
         ? `${currentImagesStr}\n${urls.join('\n')}`
@@ -86,14 +98,40 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
       setValue('images', newImagesStr);
     } catch (error: any) {
       console.error('Error uploading images:', error);
-      const errorMessage = error?.message?.includes('storage/unauthorized') 
-        ? 'Error de permisos en Firebase Storage. Por favor revisa las reglas de seguridad.'
-        : 'Error al subir las imágenes. Revisa tu conexión o la configuración de Firebase.';
-      alert(errorMessage);
+      alert('Error al subir las imágenes.');
     } finally {
       setIsUploadingImage(false);
       setUploadProgress(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleAIImageEdit = async () => {
+    if (!pendingImage) return;
+
+    setIsEditingImageAI(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(pendingImage);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+      });
+
+      const editedBase64 = await aiService.editImageWithAI(base64, pendingImage.type, aiImagePrompt);
+      
+      // Convert base64 back to File
+      const res = await fetch(editedBase64);
+      const blob = await res.blob();
+      const editedFile = new File([blob], `ai_${pendingImage.name}`, { type: pendingImage.type });
+
+      await processAndUploadImages([editedFile]);
+      setPendingImage(null);
+    } catch (error) {
+      console.error('Error editing image with AI:', error);
+      alert('Error al editar la imagen con IA.');
+    } finally {
+      setIsEditingImageAI(false);
     }
   };
 
@@ -285,7 +323,7 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploadingImage}
+                    disabled={isUploadingImage || isEditingImageAI}
                     className="flex items-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
                   >
                     {isUploadingImage ? (
@@ -302,6 +340,53 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
                   </button>
                 </div>
               </div>
+
+              {pendingImage && (
+                <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl space-y-3 mb-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-emerald-800 uppercase">Imagen Seleccionada: {pendingImage.name}</span>
+                    <button 
+                      type="button" 
+                      onClick={() => setPendingImage(null)}
+                      className="text-stone-400 hover:text-red-500"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-bold text-emerald-600 uppercase">Instrucciones para la IA (Opcional)</label>
+                    <input 
+                      type="text" 
+                      value={aiImagePrompt}
+                      onChange={(e) => setAiImagePrompt(e.target.value)}
+                      className="w-full p-2 text-xs rounded-lg border border-emerald-200 focus:ring-1 focus:ring-emerald-500 outline-none"
+                      placeholder="Ej: Mejora la iluminación y haz los colores más vivos"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAIImageEdit}
+                      disabled={isEditingImageAI}
+                      className="flex-1 bg-emerald-600 text-white text-[10px] font-bold py-2 rounded-lg hover:bg-emerald-700 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                    >
+                      {isEditingImageAI ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                      EDITAR CON IA Y SUBIR
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        processAndUploadImages([pendingImage]);
+                        setPendingImage(null);
+                      }}
+                      disabled={isEditingImageAI}
+                      className="flex-1 bg-white border border-emerald-200 text-emerald-600 text-[10px] font-bold py-2 rounded-lg hover:bg-emerald-50 transition-all disabled:opacity-50"
+                    >
+                      SUBIR ORIGINAL
+                    </button>
+                  </div>
+                </div>
+              )}
               
               <div className="space-y-3">
                 <textarea 
