@@ -57,8 +57,9 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
     try {
       const description = await aiService.generateTourDescription(location, title);
       setValue('description', description);
-    } catch (error) {
-      alert('Error al generar la descripción con IA.');
+    } catch (error: any) {
+      console.error('Error generating AI description:', error);
+      alert(`Error al generar la descripción con IA: ${error.message || 'Error desconocido'}`);
     } finally {
       setIsGeneratingAI(false);
     }
@@ -127,9 +128,9 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
 
       await processAndUploadImages([editedFile]);
       setPendingImage(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error editing image with AI:', error);
-      alert('Error al editar la imagen con IA.');
+      alert(`Error al editar la imagen con IA: ${error.message || 'Error desconocido'}`);
     } finally {
       setIsEditingImageAI(false);
     }
