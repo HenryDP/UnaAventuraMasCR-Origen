@@ -112,25 +112,59 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
 
     setIsEditingImageAI(true);
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
+      // 1. Compress/Resize image before sending to AI to save quota and prevent 429
+      const compressedBase64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(pendingImage);
-        reader.onload = () => resolve(reader.result as string);
+        reader.onload = (e) => {
+          const img = new Image();
+          img.src = e.target?.result as string;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 1024; // Reasonable size for AI editing
+            const MAX_HEIGHT = 1024;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.8)); // Compress to JPEG 80%
+          };
+          img.onerror = reject;
+        };
         reader.onerror = reject;
       });
 
-      const editedBase64 = await aiService.editImageWithAI(base64, pendingImage.type, aiImagePrompt);
+      const editedBase64 = await aiService.editImageWithAI(compressedBase64, 'image/jpeg', aiImagePrompt);
       
       // Convert base64 back to File
       const res = await fetch(editedBase64);
       const blob = await res.blob();
-      const editedFile = new File([blob], `ai_${pendingImage.name}`, { type: pendingImage.type });
+      const editedFile = new File([blob], `ai_${pendingImage.name.split('.')[0]}.jpg`, { type: 'image/jpeg' });
 
       await processAndUploadImages([editedFile]);
       setPendingImage(null);
     } catch (error: any) {
       console.error('Error editing image with AI:', error);
-      alert(`Error al editar la imagen con IA: ${error.message || 'Error desconocido'}`);
+      let msg = 'Error al editar la imagen con IA.';
+      if (error.message?.includes('429')) {
+        msg = 'Has alcanzado el límite de uso gratuito de la IA por ahora. Por favor, espera un minuto e intenta de nuevo o reduce el tamaño de la imagen.';
+      }
+      alert(msg);
     } finally {
       setIsEditingImageAI(false);
     }
