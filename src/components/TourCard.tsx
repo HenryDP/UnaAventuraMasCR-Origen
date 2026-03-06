@@ -34,6 +34,7 @@ export interface SiteConfig {
   heroTitle: string;
   heroSubtitle: string;
   heroImageUrl: string;
+  logoUrl?: string;
   companyDescription: string;
   whatsappNumber: string;
   whatsappDefaultMessage: string;

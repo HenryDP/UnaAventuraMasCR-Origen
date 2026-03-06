@@ -5,6 +5,7 @@ import { auth, db } from '../lib/firebase';
 import { Tour, SiteConfig } from './TourCard';
 import { tourService } from '../services/tourService';
 import TourModal from './TourModal';
+import ReviewManager from './ReviewManager';
 import { 
   Plus, 
   Trash2, 
@@ -53,6 +54,7 @@ interface ConfigFormData {
   heroTitle: string;
   heroSubtitle: string;
   heroImageUrl: string;
+  logoUrl?: string;
   footerCopyright: string;
   companyDescription: string;
   whatsappNumber: string;
@@ -63,7 +65,7 @@ interface ConfigFormData {
   tiktokUrl: string;
 }
 
-type AdminTab = 'dashboard' | 'tours' | 'sales' | 'appearance' | 'settings';
+type AdminTab = 'dashboard' | 'tours' | 'sales' | 'appearance' | 'settings' | 'reviews';
 
 export default function AdminPanel({ user }: { user: User }) {
   const [tours, setTours] = useState<Tour[]>([]);
@@ -150,6 +152,14 @@ export default function AdminPanel({ user }: { user: User }) {
           >
             <Package size={20} />
             <span className="font-medium">Tours</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('reviews')}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'reviews' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
+          >
+            <Star size={20} />
+            <span className="font-medium">Reseñas</span>
           </button>
           
           <button 
@@ -308,6 +318,42 @@ export default function AdminPanel({ user }: { user: User }) {
                   <label className="block text-xs font-bold text-stone-500 uppercase">URL Imagen Hero</label>
                   <input {...registerConfig("heroImageUrl")} className="mt-1 block w-full rounded-md border-stone-300 border p-2" />
                 </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Logo de la Empresa (Favicon)</label>
+                  <div className="flex items-center gap-4">
+                    <input 
+                      type="text" 
+                      {...registerConfig("logoUrl")} 
+                      className="flex-grow rounded-md border-stone-300 border p-2" 
+                      placeholder="URL del logo"
+                    />
+                    <input
+                      type="file"
+                      id="logo-upload"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          try {
+                            const url = await tourService.uploadTourImage(file);
+                            setConfigValue("logoUrl", url);
+                          } catch (error) {
+                            alert("Error al subir el logo");
+                          }
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById('logo-upload')?.click()}
+                      className="bg-stone-100 hover:bg-stone-200 text-stone-700 px-4 py-2 rounded-lg text-xs font-bold transition-all"
+                    >
+                      Subir Logo
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-stone-400 mt-1">Este logo se usará como favicon y en el encabezado. Se recomienda una imagen cuadrada.</p>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -363,6 +409,8 @@ export default function AdminPanel({ user }: { user: User }) {
             </form>
           </div>
         )}
+
+        {activeTab === 'reviews' && <ReviewManager />}
       </main>
 
       <TourModal 

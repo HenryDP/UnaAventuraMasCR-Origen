@@ -26,7 +26,16 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
     if (!db) return;
     const unsubscribe = onSnapshot(doc(db, "config", "site"), (snapshot) => {
       if (snapshot.exists()) {
-        setSiteConfig(snapshot.data() as SiteConfig);
+        const config = snapshot.data() as SiteConfig;
+        setSiteConfig(config);
+        
+        // Update Favicon
+        if (config.logoUrl) {
+          const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+          const appleLink = document.querySelector("link[rel~='apple-touch-icon']") as HTMLLinkElement;
+          if (link) link.href = config.logoUrl;
+          if (appleLink) appleLink.href = config.logoUrl;
+        }
       }
     });
     return () => unsubscribe();
@@ -61,9 +70,18 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
           <div className="flex justify-between h-20">
             <div className="flex items-center">
               <Link to="/" className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-black text-xl">A</span>
-                </div>
+                {siteConfig?.logoUrl ? (
+                  <img 
+                    src={siteConfig.logoUrl} 
+                    alt="Logo" 
+                    className="w-10 h-10 object-contain"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-black text-xl">A</span>
+                  </div>
+                )}
                 <div className="flex flex-col">
                   <span className="text-lg font-black tracking-tighter leading-none uppercase">{siteConfig?.headerTitle || "UNA AVENTURA MÁS"}</span>
                   <span className="text-[10px] font-bold text-emerald-600 tracking-widest uppercase">{siteConfig?.headerSubtitle || "Costa Rica"}</span>
@@ -149,9 +167,18 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div className="col-span-1 md:col-span-2">
               <Link to="/" className="flex items-center space-x-2 mb-6">
-                <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-black text-xl">A</span>
-                </div>
+                {siteConfig?.logoUrl ? (
+                  <img 
+                    src={siteConfig.logoUrl} 
+                    alt="Logo" 
+                    className="w-10 h-10 object-contain"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-black text-xl">A</span>
+                  </div>
+                )}
                 <div className="flex flex-col">
                   <span className="text-lg font-black tracking-tighter leading-none text-white">UNA AVENTURA MÁS</span>
                   <span className="text-[10px] font-bold text-emerald-400 tracking-widest uppercase">Costa Rica</span>
