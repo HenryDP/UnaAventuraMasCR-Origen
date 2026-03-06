@@ -36,6 +36,9 @@ interface TourFormData {
   description: string;
   priceCRC: number;
   priceUSD: number;
+  price_national?: number;
+  price_foreigner?: number;
+  currency_foreigner?: 'USD' | 'CRC';
   duration: string;
   location: string;
   date: string;

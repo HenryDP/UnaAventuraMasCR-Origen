@@ -22,6 +22,9 @@ export interface Tour {
   duration: string;
   location: string;
   date?: string;
+  price_national?: number;
+  price_foreigner?: number;
+  currency_foreigner?: 'USD' | 'CRC';
   distance?: string;
   difficulty?: 'principiante' | 'intermedio' | 'avanzado';
   category: 'nacional' | 'internacional';
@@ -124,8 +127,22 @@ const TourCard: React.FC<TourCardProps> = ({ tour }) => {
           <div className="flex flex-col">
             <span className="text-xs text-stone-500">Desde</span>
             <div className="flex items-center text-emerald-700 font-bold">
-              <span className="text-sm font-bold mr-1">₡</span>
-              {tour.price?.crc?.toLocaleString() || 0}
+              {tour.price_national ? (
+                <>
+                  <span className="text-sm font-bold mr-1">₡</span>
+                  {tour.price_national.toLocaleString()}
+                </>
+              ) : tour.price_foreigner ? (
+                <>
+                  <span className="text-sm font-bold mr-1">$</span>
+                  {tour.price_foreigner.toLocaleString()}
+                </>
+              ) : (
+                <>
+                  <span className="text-sm font-bold mr-1">₡</span>
+                  {tour.price?.crc?.toLocaleString() || 0}
+                </>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">

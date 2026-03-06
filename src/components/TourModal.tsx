@@ -236,11 +236,24 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Precio Colones (₡)</label>
+                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Precio Nacional (₡)</label>
+                  <input type="number" {...register('price_national')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Ej: 15000" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Precio Extranjero ($)</label>
+                  <input type="number" {...register('price_foreigner')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Ej: 45" />
+                </div>
+              </div>
+              <div className="hidden">
+                <input type="hidden" {...register('currency_foreigner')} defaultValue="USD" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Precio Colones (₡) - Legacy</label>
                   <input type="number" {...register('price.crc')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Precio Dólares ($)</label>
+                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Precio Dólares ($) - Legacy</label>
                   <input type="number" {...register('price.usd')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
                 </div>
               </div>
