@@ -1,8 +1,10 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
-import { getStorage } from 'firebase/storage'; // ¡La nueva herramienta para fotos!
+import { initializeApp, FirebaseApp } from "firebase/app";
+import { getFirestore, Firestore } from "firebase/firestore";
+import { getAuth, Auth } from "firebase/auth";
+import { getStorage, FirebaseStorage } from "firebase/storage";
 
+// Configuration for Firebase
+// Users must provide these values in their environment variables or .env file
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -12,8 +14,23 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase
+let app: FirebaseApp | undefined;
+let db: Firestore;
+let auth: Auth;
+let storage: FirebaseStorage;
 
-export const db = getFirestore(app);
-export const auth = getAuth(app);
-export const storage = getStorage(app); // ¡Exportamos el almacén de imágenes!
+if (import.meta.env.VITE_FIREBASE_API_KEY) {
+  try {
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    auth = getAuth(app);
+    storage = getStorage(app);
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
+  }
+} else {
+  console.warn("Firebase API keys not found. App running in demo mode.");
+}
+
+export { app, db, auth, storage };
