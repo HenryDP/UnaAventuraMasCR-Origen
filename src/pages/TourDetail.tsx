@@ -155,6 +155,9 @@ export default function TourDetail() {
             <div className="flex flex-wrap items-center text-white/90 gap-6">
               <span className="flex items-center"><MapPin size={18} className="mr-2 text-emerald-400" /> {tour.location}</span>
               <span className="flex items-center"><Clock size={18} className="mr-2 text-emerald-400" /> {tour.duration}</span>
+              {tour.date && (
+                <span className="flex items-center"><Calendar size={18} className="mr-2 text-emerald-400" /> {tour.date}</span>
+              )}
               {tour.distance && (
                 <span className="flex items-center">
                   <span className="w-5 h-5 flex items-center justify-center mr-2 bg-emerald-400/20 rounded text-[10px] font-bold text-emerald-400 border border-emerald-400/30">KM</span>

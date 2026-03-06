@@ -177,6 +177,10 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
                 <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Duración</label>
                 <input {...register('duration', { required: true })} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
               </div>
+              <div>
+                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Fecha del Tour</label>
+                <input {...register('date')} type="text" placeholder="Ej: 15 de Octubre, 2023" className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Kilometraje (km)</label>

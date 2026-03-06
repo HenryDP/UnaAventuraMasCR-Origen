@@ -38,6 +38,7 @@ interface TourFormData {
   priceUSD: number;
   duration: string;
   location: string;
+  date: string;
   category: 'nacional' | 'internacional';
   active: boolean;
   images: string; // Newline separated
