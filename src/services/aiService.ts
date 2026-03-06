@@ -3,7 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 export const aiService = {
   generateTourDescription: async (location: string, title: string) => {
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
+      const apiKey = process.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
       if (!apiKey) {
         throw new Error("API Key de Gemini no encontrada. Por favor, asegúrate de que esté configurada en el entorno del proyecto.");
       }
@@ -38,7 +38,7 @@ export const aiService = {
 
   editImageWithAI: async (base64Image: string, mimeType: string, prompt: string) => {
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
+      const apiKey = process.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
       if (!apiKey) {
         throw new Error("API Key de Gemini no encontrada.");
       }
