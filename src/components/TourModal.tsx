@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { X, Save, Trash2, Sparkles, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Tour } from './TourCard';
@@ -20,7 +20,7 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
   const [uploadProgress, setUploadProgress] = useState<{current: number, total: number} | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { register, handleSubmit, setValue, watch, formState: { isSubmitting } } = useForm<any>({
+  const { register, handleSubmit, setValue, watch, reset, formState: { isSubmitting } } = useForm<any>({
     defaultValues: tour ? {
       ...tour,
       images: Array.isArray(tour.images) ? tour.images.join('\n') : tour.images,
@@ -36,6 +36,25 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
       pickupLocations: ''
     }
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      reset(tour ? {
+        ...tour,
+        images: Array.isArray(tour.images) ? tour.images.join('\n') : tour.images,
+        included: Array.isArray(tour.included) ? tour.included.join('\n') : tour.included,
+        recommendations: Array.isArray(tour.recommendations) ? tour.recommendations.join('\n') : tour.recommendations,
+        pickupLocations: Array.isArray(tour.pickupLocations) ? tour.pickupLocations.join('\n') : tour.pickupLocations,
+      } : {
+        active: true,
+        category: 'nacional',
+        images: '',
+        included: '',
+        recommendations: '',
+        pickupLocations: ''
+      });
+    }
+  }, [tour, isOpen, reset]);
 
   const imagesValue = watch('images') || '';
   const currentImages = typeof imagesValue === 'string' 
@@ -179,10 +198,12 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
           crc: Number(data.price?.crc || 0),
           usd: Number(data.price?.usd || 0)
         },
-        images: typeof data.images === 'string' ? data.images.split('\n').map(i => i.trim()).filter(Boolean) : data.images,
-        included: typeof data.included === 'string' ? data.included.split('\n').map(i => i.trim()).filter(Boolean) : data.included,
-        recommendations: typeof data.recommendations === 'string' ? data.recommendations.split('\n').map(i => i.trim()).filter(Boolean) : data.recommendations,
-        pickupLocations: typeof data.pickupLocations === 'string' ? data.pickupLocations.split('\n').map(i => i.trim()).filter(Boolean) : data.pickupLocations,
+        price_national: data.price_national ? Number(data.price_national) : null,
+        price_foreigner: data.price_foreigner ? Number(data.price_foreigner) : null,
+        images: typeof data.images === 'string' ? data.images.split('\n').map(i => i.trim()).filter(Boolean) : (Array.isArray(data.images) ? data.images : []),
+        included: typeof data.included === 'string' ? data.included.split('\n').map(i => i.trim()).filter(Boolean) : (Array.isArray(data.included) ? data.included : []),
+        recommendations: typeof data.recommendations === 'string' ? data.recommendations.split('\n').map(i => i.trim()).filter(Boolean) : (Array.isArray(data.recommendations) ? data.recommendations : []),
+        pickupLocations: typeof data.pickupLocations === 'string' ? data.pickupLocations.split('\n').map(i => i.trim()).filter(Boolean) : (Array.isArray(data.pickupLocations) ? data.pickupLocations : []),
       };
 
       if (tour?.id) {
