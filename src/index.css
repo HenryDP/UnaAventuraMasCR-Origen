@@ -16,6 +16,9 @@
   --color-emerald-800: #065f46;
   --color-emerald-900: #064e3b;
   --color-emerald-950: #022c22;
+  
+  --color-sunset: #FF6B35;
+  --color-forest: #2A9D8F;
 }
 
 @layer base {
