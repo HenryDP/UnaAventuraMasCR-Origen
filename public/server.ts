@@ -28,6 +28,18 @@ async function startServer() {
       appType: "spa",
     });
     app.use(vite.middlewares);
+
+    // Manual fallback for dev mode if needed
+    app.get("*", async (req, res, next) => {
+      const url = req.originalUrl;
+      try {
+        let template = await vite.transformIndexHtml(url, `<!DOCTYPE html><html><head></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>`);
+        res.status(200).set({ "Content-Type": "text/html" }).end(template);
+      } catch (e) {
+        vite.ssrFixStacktrace(e as Error);
+        next(e);
+      }
+    });
   }
 
   app.listen(PORT, "0.0.0.0", () => {
