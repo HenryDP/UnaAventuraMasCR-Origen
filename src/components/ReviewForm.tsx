@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Star, Send, X, CheckCircle } from 'lucide-react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { tourService } from '../services/tourService';
 
 interface ReviewFormProps {
   onSuccess?: () => void;
@@ -12,30 +11,29 @@ export default function ReviewForm({ onSuccess }: ReviewFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [rating, setRating] = useState(5);
   const [hover, setHover] = useState(0);
-  const [name, setName] = useState('');
-  const [text, setText] = useState('');
+  const [userName, setUserName] = useState('');
+  const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !text) return;
+    if (!userName || !comment) return;
 
     setIsSubmitting(true);
     try {
-      await addDoc(collection(db, 'reviews'), {
-        name,
-        text,
+      await tourService.addReview({
+        userName,
+        comment,
         rating,
-        createdAt: serverTimestamp(),
-        status: 'approved' // Auto-approve for now, or 'pending' if moderation is needed
-      });
+        status: 'approved' // Auto-approve for now
+      } as any); // Type cast because addReview in tourService expects specific fields
       setIsSuccess(true);
       setTimeout(() => {
         setIsSuccess(false);
         setIsOpen(false);
-        setName('');
-        setText('');
+        setUserName('');
+        setComment('');
         setRating(5);
         if (onSuccess) onSuccess();
       }, 3000);
@@ -122,8 +120,8 @@ export default function ReviewForm({ onSuccess }: ReviewFormProps) {
                     type="text"
                     id="name"
                     required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
                     placeholder="Ej. María Rodríguez"
                   />
@@ -135,8 +133,8 @@ export default function ReviewForm({ onSuccess }: ReviewFormProps) {
                     id="text"
                     required
                     rows={4}
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none"
                     placeholder="¿Qué fue lo que más te gustó del tour?"
                   />

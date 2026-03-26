@@ -26,12 +26,12 @@ const REVIEWS_COLLECTION = 'reviews';
 
 export interface Review {
   id: string;
-  tourId: string;
+  tourId?: string;
   userName: string;
-  rating: number;
   comment: string;
+  rating: number;
   createdAt: any;
-  status?: 'approved' | 'pending' | 'rejected';
+  status: 'approved' | 'pending' | 'rejected';
 }
 
 export const tourService = {
@@ -214,13 +214,65 @@ export const tourService = {
   /**
    * Add a new review
    */
-  addReview: async (reviewData: { tourId: string; userName: string; rating: number; comment: string }) => {
+  addReview: async (reviewData: { tourId?: string; userName: string; rating: number; comment: string }) => {
     if (!db) throw new Error("Firebase not initialized");
     
     return await addDoc(collection(db, REVIEWS_COLLECTION), {
       ...reviewData,
       status: 'approved', // Auto-approve for now
       createdAt: serverTimestamp()
+    });
+  },
+
+  /**
+   * Update a review
+   */
+  updateReview: async (id: string, reviewData: Partial<Review>) => {
+    if (!db) throw new Error("Firebase not initialized");
+    const docRef = doc(db, REVIEWS_COLLECTION, id);
+    return await updateDoc(docRef, {
+      ...reviewData,
+      updatedAt: serverTimestamp()
+    });
+  },
+
+  /**
+   * Update review status
+   */
+  updateReviewStatus: async (id: string, status: 'approved' | 'rejected') => {
+    if (!db) throw new Error("Firebase not initialized");
+    const docRef = doc(db, REVIEWS_COLLECTION, id);
+    return await updateDoc(docRef, { status });
+  },
+
+  /**
+   * Delete a review
+   */
+  deleteReview: async (id: string) => {
+    if (!db) throw new Error("Firebase not initialized");
+    const docRef = doc(db, REVIEWS_COLLECTION, id);
+    return await deleteDoc(docRef);
+  },
+
+  /**
+   * Subscribe to all reviews (Admin view)
+   */
+  subscribeToAllReviews: (callback: (reviews: Review[]) => void) => {
+    if (!db) return () => {};
+    
+    const q = query(
+      collection(db, REVIEWS_COLLECTION),
+      orderBy('createdAt', 'desc')
+    );
+
+    return onSnapshot(q, (snapshot) => {
+      const reviews = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Review[];
+      callback(reviews);
+    }, (error) => {
+      console.error("Error listening to all reviews:", error);
     });
   },
 

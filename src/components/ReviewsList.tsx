@@ -6,8 +6,8 @@ import { db } from '../lib/firebase';
 
 interface Review {
   id: string;
-  name: string;
-  text: string;
+  userName: string;
+  comment: string;
   rating: number;
   createdAt: any;
 }
@@ -82,15 +82,15 @@ export default function ReviewsList() {
           </div>
           
           <p className="text-stone-600 italic mb-6 leading-relaxed relative z-10">
-            "{review.text}"
+            "{review.comment}"
           </p>
           
           <div className="flex items-center gap-3 relative z-10">
             <div className="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold text-sm">
-              {review.name.charAt(0).toUpperCase()}
+              {review.userName.charAt(0).toUpperCase()}
             </div>
             <div>
-              <p className="font-bold text-stone-900">{review.name}</p>
+              <p className="font-bold text-stone-900">{review.userName}</p>
               <p className="text-xs text-stone-400">Viajero Verificado</p>
             </div>
           </div>
