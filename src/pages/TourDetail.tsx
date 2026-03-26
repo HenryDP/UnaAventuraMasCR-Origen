@@ -9,6 +9,11 @@ import TourModal from '../components/TourModal';
 import ShareModal from '../components/ShareModal';
 import ReviewSection from '../components/ReviewSection';
 
+// Esto evita que TypeScript lance alertas rojas por usar Vibrant.js
+declare global {
+  interface Window { Vibrant: any; }
+}
+
 export default function TourDetail() {
   const { id } = useParams<{ id: string }>();
   const [tour, setTour] = useState<Tour | null>(null);
@@ -17,6 +22,7 @@ export default function TourDetail() {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [bgColor, setBgColor] = useState<string>('#2A9D8F'); // Color verde por defecto
   const { isAdmin } = useAuth();
   const { setMessage, resetMessage } = useWhatsApp();
 
@@ -25,7 +31,6 @@ export default function TourDetail() {
 
     const fetchData = async () => {
       try {
-        // Fetch Site Config & Tour in parallel for performance
         const [config, tourData] = await Promise.all([
           tourService.getSiteConfig(),
           tourService.getTourById(id)
@@ -50,6 +55,34 @@ export default function TourDetail() {
       resetMessage();
     };
   }, [id, setMessage, resetMessage]);
+
+  // --- MAGIA DEL COLOR DINÁMICO ---
+  useEffect(() => {
+    if (tour?.images && tour.images.length > 0 && window.Vibrant) {
+      const imgUrl = tour.images[activeImageIndex];
+      
+      const img = new Image();
+      img.crossOrigin = 'Anonymous'; 
+      img.src = imgUrl;
+
+      img.addEventListener('load', () => {
+        try {
+          const vibrant = new window.Vibrant(img);
+          const swatches = vibrant.swatches();
+
+          const dominantColor = swatches['DarkMuted'] || swatches['Muted'] || swatches['Vibrant'];
+          
+          if (dominantColor) {
+            setBgColor(dominantColor.getHex());
+          } else {
+            setBgColor('#2A9D8F');
+          }
+        } catch (error) {
+          console.error("Error extrayendo color:", error);
+        }
+      });
+    }
+  }, [tour, activeImageIndex]);
 
   if (loading) {
     return (
@@ -82,14 +115,17 @@ export default function TourDetail() {
 
   return (
     <div className="bg-stone-50 min-h-screen pb-20">
-      {/* Image Gallery / Hero */}
-      <div className="relative h-[60vh] w-full bg-stone-900 overflow-hidden">
+      {/* Image Gallery / Hero con Fondo Dinámico */}
+      <div 
+        className="relative h-[60vh] w-full overflow-hidden transition-colors duration-1200 ease-in-out"
+        style={{ backgroundColor: bgColor }}
+      >
         {tour.images && tour.images.length > 0 ? (
           <>
             <img 
               src={tour.images[activeImageIndex]} 
               alt={`${tour.title} - ${activeImageIndex + 1}`} 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
               loading="lazy"
             />
@@ -125,7 +161,7 @@ export default function TourDetail() {
           </div>
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end">
+        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent flex items-end">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-12">
             <div className="flex justify-between items-start mb-4">
               <Link to="/tours" className="text-white/80 hover:text-white flex items-center transition-colors">

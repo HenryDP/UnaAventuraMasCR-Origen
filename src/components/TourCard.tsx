@@ -77,7 +77,7 @@ const TourCard: React.FC<TourCardProps> = ({ tour }) => {
           No Disponible
         </div>
       )}
-      <div className="relative aspect-[4/3] w-full shrink-0 bg-stone-100 overflow-hidden">
+      <div className="relative aspect-4/3 w-full shrink-0 bg-stone-100 overflow-hidden">
         <img 
           src={mainImage} 
           alt={tour.title} 
@@ -86,9 +86,9 @@ const TourCard: React.FC<TourCardProps> = ({ tour }) => {
           loading="lazy"
         />
       </div>
-      <div className="p-5 flex flex-col flex-grow">
+      <div className="p-5 flex flex-col grow">
         <h3 className="text-lg font-bold text-stone-900 mb-2">{tour.title}</h3>
-        <p className="text-stone-500 text-sm mb-4 line-clamp-2 flex-grow">{tour.description}</p>
+        <p className="text-stone-500 text-sm mb-4 line-clamp-2 grow">{tour.description}</p>
         
         <div className="space-y-2 mb-4">
           <div className="flex items-center text-xs text-stone-500">
