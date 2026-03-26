@@ -78,10 +78,19 @@ const TourCard: React.FC<TourCardProps> = ({ tour }) => {
         </div>
       )}
       <div className="relative aspect-4/3 w-full shrink-0 bg-stone-100 overflow-hidden">
+        {/* Blurred Background Image */}
+        <img 
+          src={mainImage} 
+          alt="" 
+          className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-50"
+          referrerPolicy="no-referrer"
+          aria-hidden="true"
+        />
+        {/* Main Image */}
         <img 
           src={mainImage} 
           alt={tour.title} 
-          className="w-full h-full object-contain"
+          className="relative w-full h-full object-contain z-10"
           referrerPolicy="no-referrer"
           loading="lazy"
         />

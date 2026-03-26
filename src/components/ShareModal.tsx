@@ -35,7 +35,7 @@ export default function ShareModal({ isOpen, onClose, url, title, description }:
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
         <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
           <h2 className="text-xl font-bold text-stone-900 flex items-center">
@@ -112,7 +112,7 @@ export default function ShareModal({ isOpen, onClose, url, title, description }:
               <div className="bg-stone-50 p-4 rounded-xl border border-stone-100">
                 <p className="text-xs font-bold text-stone-400 uppercase mb-2">Link del Tour</p>
                 <div className="flex items-center gap-2 overflow-hidden">
-                  <span className="text-sm text-stone-600 truncate flex-grow font-mono">{url}</span>
+                  <span className="text-sm text-stone-600 truncate grow font-mono">{url}</span>
                 </div>
               </div>
             </>
