@@ -9,12 +9,14 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import { WhatsAppProvider } from './context/WhatsAppContext';
 import { AuthProvider } from './context/AuthContext';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <AuthProvider>
       <WhatsAppProvider>
         <Router>
+          <ScrollToTop />
           <Layout>
             <Routes>
               <Route path="/" element={<Home />} />

@@ -217,11 +217,28 @@ export const tourService = {
   addReview: async (reviewData: { tourId?: string; userName: string; rating: number; comment: string }) => {
     if (!db) throw new Error("Firebase not initialized");
     
-    return await addDoc(collection(db, REVIEWS_COLLECTION), {
-      ...reviewData,
+    console.log("Adding review:", reviewData);
+    
+    const data: any = {
+      userName: reviewData.userName,
+      rating: reviewData.rating,
+      comment: reviewData.comment,
       status: 'approved', // Auto-approve for now
       createdAt: serverTimestamp()
-    });
+    };
+
+    if (reviewData.tourId) {
+      data.tourId = reviewData.tourId;
+    }
+    
+    try {
+      const docRef = await addDoc(collection(db, REVIEWS_COLLECTION), data);
+      console.log("Review added with ID:", docRef.id);
+      return docRef;
+    } catch (error) {
+      console.error("Error in addReview service:", error);
+      throw error;
+    }
   },
 
   /**
