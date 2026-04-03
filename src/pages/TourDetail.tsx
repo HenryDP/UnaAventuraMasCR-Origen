@@ -134,7 +134,7 @@ export default function TourDetail() {
           </div>
         )}
         
-        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent flex items-end">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-12">
             <div className="flex justify-between items-start mb-4">
               <Link to="/tours" className="text-white/80 hover:text-white flex items-center transition-colors">
@@ -219,51 +219,57 @@ export default function TourDetail() {
             )}
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {tour.included && tour.included.length > 0 && (
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h3 className="text-lg font-bold text-stone-900 mb-4 flex items-center">
+                    <CheckCircle className="mr-2 text-emerald-600" size={20} />
+                    ¿Qué incluye?
+                  </h3>
+                  <ul className="space-y-2 text-stone-600">
+                    {tour.included.map((item, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="mr-2 text-emerald-500">•</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {tour.recommendations && tour.recommendations.length > 0 && (
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h3 className="text-lg font-bold text-stone-900 mb-4 flex items-center">
+                    <AlertCircle className="mr-2 text-amber-500" size={20} />
+                    Recomendaciones
+                  </h3>
+                  <ul className="space-y-2 text-stone-600">
+                    {tour.recommendations.map((item, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="mr-2 text-amber-400">•</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {tour.pickupLocations && tour.pickupLocations.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="text-lg font-bold text-stone-900 mb-4 flex items-center">
-                  <CheckCircle className="mr-2 text-emerald-600" size={20} />
-                  ¿Qué incluye?
+                  <Bus className="mr-2 text-blue-500" size={20} />
+                  Puntos de Salida / Bus o Microbús
                 </h3>
-                <ul className="space-y-2 text-stone-600">
-                  {tour.included?.map((item, index) => (
-                    <li key={index} className="flex items-start">
-                      <span className="mr-2 text-emerald-500">•</span>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-stone-600">
+                  {tour.pickupLocations.map((item, index) => (
+                    <li key={index} className="flex items-center">
+                      <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
                       {item}
                     </li>
                   ))}
                 </ul>
               </div>
-
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-bold text-stone-900 mb-4 flex items-center">
-                  <AlertCircle className="mr-2 text-amber-500" size={20} />
-                  Recomendaciones
-                </h3>
-                <ul className="space-y-2 text-stone-600">
-                  {tour.recommendations?.map((item, index) => (
-                    <li key={index} className="flex items-start">
-                      <span className="mr-2 text-amber-400">•</span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-bold text-stone-900 mb-4 flex items-center">
-                <Bus className="mr-2 text-blue-500" size={20} />
-                Puntos de Salida / Bus o Microbús
-              </h3>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-stone-600">
-                {tour.pickupLocations?.map((item, index) => (
-                  <li key={index} className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            )}
 
             {/* Reviews Section */}
             <ReviewSection tourId={tour.id} />
@@ -278,13 +284,13 @@ export default function TourDetail() {
                 <div className="flex justify-between items-center p-3 bg-stone-50 rounded-lg">
                   <span className="text-stone-600 font-medium">Nacionales</span>
                   <div className="text-xl font-bold text-emerald-700">
-                    ₡{tour.price?.crc?.toLocaleString() || 0}
+                    ₡{(tour.price_national ?? tour.price?.crc ?? 0).toLocaleString()}
                   </div>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-stone-50 rounded-lg">
                   <span className="text-stone-600 font-medium">Extranjeros</span>
                   <div className="text-xl font-bold text-emerald-700">
-                    ${tour.price?.usd?.toLocaleString() || 0}
+                    ${(tour.price_foreigner ?? tour.price?.usd ?? 0).toLocaleString()}
                   </div>
                 </div>
               </div>
