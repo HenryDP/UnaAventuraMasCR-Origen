@@ -1,166 +1,101 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Star, Send, X, CheckCircle } from 'lucide-react';
-import { tourService } from '../services/tourService';
+import React, { useEffect, useState } from 'react';
+import { motion } from 'motion/react';
+import { Star, Quote } from 'lucide-react';
+import { collection, query, orderBy, limit, onSnapshot, where } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
-interface ReviewFormProps {
-  onSuccess?: () => void;
+interface Review {
+  id: string;
+  userName: string;
+  comment: string;
+  rating: number;
+  createdAt: any;
 }
 
-export default function ReviewForm({ onSuccess }: ReviewFormProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [rating, setRating] = useState(5);
-  const [hover, setHover] = useState(0);
-  const [userName, setUserName] = useState('');
-  const [comment, setComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+export default function ReviewsList() {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!userName.trim() || !comment.trim()) {
-      alert('Por favor completa todos los campos.');
-      return;
-    }
+  useEffect(() => {
+    const q = query(
+      collection(db, 'reviews'),
+      where('status', '==', 'approved'),
+      orderBy('createdAt', 'desc'),
+      limit(6)
+    );
 
-    setIsSubmitting(true);
-    try {
-      await tourService.addReview({
-        userName,
-        comment,
-        rating
-      });
-      setIsSuccess(true);
-      setTimeout(() => {
-        setIsSuccess(false);
-        setIsOpen(false);
-        setUserName('');
-        setComment('');
-        setRating(5);
-        if (onSuccess) onSuccess();
-      }, 3000);
-    } catch (error) {
-      console.error("Error adding review:", error);
-      alert("Hubo un error al enviar tu reseña. Por favor intenta de nuevo.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const reviewsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Review[];
+      setReviews(reviewsData);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching reviews:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (reviews.length === 0) {
+    return (
+      <div className="text-center py-12 text-stone-500 italic">
+        Aún no hay reseñas. ¡Sé el primero en compartir tu experiencia!
+      </div>
+    );
+  }
 
   return (
-    <div className="mt-12 text-center">
-      {!isOpen ? (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="bg-emerald-600 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-700 transition-all shadow-lg transform hover:scale-105"
-        >
-          Escribir una Reseña
-        </button>
-      ) : (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {reviews.map((review, index) => (
         <motion.div
+          key={review.id}
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-xl mx-auto bg-white p-8 rounded-3xl shadow-2xl border border-stone-100 text-left relative"
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: index * 0.1 }}
+          className="bg-white p-8 rounded-3xl border border-stone-100 shadow-sm hover:shadow-md transition-shadow relative group"
         >
-          <button 
-            onClick={() => setIsOpen(false)}
-            className="absolute top-4 right-4 text-stone-400 hover:text-stone-600"
-          >
-            <X size={24} />
-          </button>
-
-          <AnimatePresence mode="wait">
-            {isSuccess ? (
-              <motion.div
-                key="success"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="py-12 text-center"
-              >
-                <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle size={48} />
-                </div>
-                <h3 className="text-2xl font-bold text-stone-900 mb-2">¡Gracias por tu reseña!</h3>
-                <p className="text-stone-600">Tu opinión nos ayuda a seguir mejorando nuestras aventuras.</p>
-              </motion.div>
-            ) : (
-              <motion.form
-                key="form"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onSubmit={handleSubmit}
-                className="space-y-6"
-              >
-                <h3 className="text-2xl font-bold text-stone-900">Cuéntanos tu experiencia</h3>
-                
-                <div>
-                  <label className="block text-sm font-bold text-stone-700 mb-2">Calificación</label>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => setRating(star)}
-                        onMouseEnter={() => setHover(star)}
-                        onMouseLeave={() => setHover(0)}
-                        className="text-amber-400 focus:outline-none transition-transform hover:scale-110"
-                      >
-                        <Star
-                          size={32}
-                          fill={(hover || rating) >= star ? "currentColor" : "none"}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="name" className="block text-sm font-bold text-stone-700 mb-2">Tu Nombre</label>
-                  <input
-                    type="text"
-                    id="name"
-                    required
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
-                    placeholder="Ej. María Rodríguez"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="text" className="block text-sm font-bold text-stone-700 mb-2">Tu Reseña</label>
-                  <textarea
-                    id="text"
-                    required
-                    rows={4}
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none"
-                    placeholder="¿Qué fue lo que más te gustó del tour?"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {isSubmitting ? (
-                    <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  ) : (
-                    <>
-                      <Send size={20} />
-                      Enviar Reseña
-                    </>
-                  )}
-                </button>
-              </motion.form>
-            )}
-          </AnimatePresence>
+          <div className="absolute top-6 right-8 text-emerald-100 group-hover:text-emerald-200 transition-colors">
+            <Quote size={48} />
+          </div>
+          
+          <div className="flex text-amber-400 mb-4 relative z-10">
+            {[...Array(5)].map((_, i) => (
+              <Star 
+                key={i} 
+                size={18} 
+                fill={i < review.rating ? "currentColor" : "none"} 
+                className={i < review.rating ? "" : "text-stone-200"}
+              />
+            ))}
+          </div>
+          
+          <p className="text-stone-600 italic mb-6 leading-relaxed relative z-10">
+            "{review.comment}"
+          </p>
+          
+          <div className="flex items-center gap-3 relative z-10">
+            <div className="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold text-sm">
+              {review.userName.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p className="font-bold text-stone-900">{review.userName}</p>
+              <p className="text-xs text-stone-400">Viajero Verificado</p>
+            </div>
+          </div>
         </motion.div>
-      )}
+      ))}
     </div>
   );
 }
