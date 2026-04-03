@@ -255,7 +255,8 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className=".grow overflow-y-auto p-8 space-y-8">
+        {/* ¡AQUÍ ESTABA EL ERROR! Se eliminó el punto (.) antes de la palabra grow */}
+        <form onSubmit={handleSubmit(onSubmit)} className="grow overflow-y-auto p-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">
               <h3 className="font-bold text-emerald-600 text-sm uppercase tracking-wider border-b border-emerald-100 pb-2">Información Básica</h3>
