@@ -73,6 +73,7 @@ type AdminTab = 'dashboard' | 'tours' | 'sales' | 'appearance' | 'settings' | 'r
 
 export default function AdminPanel({ user }: { user: User }) {
   const [tours, setTours] = useState<Tour[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [siteConfig, setSiteConfig] = useState<SiteConfig | null>(null);
   const [editingTour, setEditingTour] = useState<Tour | null>(null);
   const [isTourModalOpen, setIsTourModalOpen] = useState(false);
@@ -86,6 +87,7 @@ export default function AdminPanel({ user }: { user: User }) {
     if (!db) return;
 
     const unsubscribeTours = tourService.subscribeToAllTours(setTours);
+    const unsubscribeReviews = tourService.subscribeToAllReviews(setReviews);
 
     const unsubscribeConfig = onSnapshot(doc(db, "config", "site"), (snapshot) => {
       if (snapshot.exists()) {
@@ -99,6 +101,7 @@ export default function AdminPanel({ user }: { user: User }) {
 
     return () => {
       unsubscribeTours();
+      unsubscribeReviews();
       unsubscribeConfig();
     };
   }, [setConfigValue]);
@@ -130,60 +133,64 @@ export default function AdminPanel({ user }: { user: User }) {
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col md:flex-row">
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-stone-900 text-white flex flex-col shrink-0">
-        <div className="p-6 border-b border-stone-800">
+      {/* Sidebar / Mobile Header */}
+      <aside className="w-full md:w-64 bg-stone-900 text-white flex flex-col shrink-0 sticky top-0 md:relative z-40">
+        <div className="p-4 md:p-6 border-b border-stone-800 flex justify-between items-center md:block">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-emerald-600 rounded flex items-center justify-center">
               <span className="font-black text-white">A</span>
             </div>
             <span className="font-bold tracking-tight uppercase">Aventura Admin</span>
           </div>
+          {/* Mobile Logout Button */}
+          <button onClick={onLogout} className="md:hidden text-stone-400 hover:text-red-400">
+            <LogOut size={20} />
+          </button>
         </div>
         
-        <nav className="flex-grow p-4 space-y-2">
+        <nav className="flex md:flex-col overflow-x-auto md:overflow-x-visible p-2 md:p-4 space-x-1 md:space-x-0 md:space-y-2 no-scrollbar">
           <button 
             onClick={() => setActiveTab('dashboard')}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'dashboard' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
+            className={`flex-shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'dashboard' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
           >
-            <BarChart3 size={20} />
-            <span className="font-medium">Dashboard</span>
+            <BarChart3 size={18} />
+            <span className="font-medium text-sm">Dashboard</span>
           </button>
           
           <button 
             onClick={() => setActiveTab('tours')}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'tours' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
+            className={`flex-shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'tours' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
           >
-            <Package size={20} />
-            <span className="font-medium">Tours</span>
+            <Package size={18} />
+            <span className="font-medium text-sm">Tours</span>
           </button>
 
           <button 
             onClick={() => setActiveTab('reviews')}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'reviews' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
+            className={`flex-shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'reviews' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
           >
-            <Star size={20} />
-            <span className="font-medium">Reseñas</span>
+            <Star size={18} />
+            <span className="font-medium text-sm">Reseñas</span>
           </button>
           
           <button 
             onClick={() => setActiveTab('appearance')}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'appearance' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
+            className={`flex-shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'appearance' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
           >
-            <LayoutIcon size={20} />
-            <span className="font-medium">Apariencia</span>
+            <LayoutIcon size={18} />
+            <span className="font-medium text-sm">Apariencia</span>
           </button>
           
           <button 
             onClick={() => setActiveTab('settings')}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
+            className={`flex-shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
           >
-            <Settings size={20} />
-            <span className="font-medium">Ajustes</span>
+            <Settings size={18} />
+            <span className="font-medium text-sm">Ajustes</span>
           </button>
         </nav>
         
-        <div className="p-4 border-t border-stone-800">
+        <div className="hidden md:block p-4 border-t border-stone-800">
           <div className="mb-4 px-4 text-xs text-stone-500 truncate">
             {user.email}
           </div>
@@ -202,14 +209,22 @@ export default function AdminPanel({ user }: { user: User }) {
         {activeTab === 'dashboard' && (
           <div className="space-y-8">
             <h2 className="text-2xl font-bold text-stone-900">Dashboard</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
-                <div className="text-3xl font-bold text-stone-900">{tours.length}</div>
-                <div className="text-sm text-stone-500">Tours Registrados</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 hover:border-emerald-200 transition-all group">
+                <div className="text-3xl font-black text-stone-900 group-hover:text-emerald-600 transition-colors">{tours.length}</div>
+                <div className="text-xs font-bold text-stone-400 uppercase tracking-wider">Tours Registrados</div>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
-                <div className="text-3xl font-bold text-stone-900">{tours.filter(t => t.active).length}</div>
-                <div className="text-sm text-stone-500">Tours Activos</div>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 hover:border-emerald-200 transition-all group">
+                <div className="text-3xl font-black text-stone-900 group-hover:text-emerald-600 transition-colors">{tours.filter(t => t.active).length}</div>
+                <div className="text-xs font-bold text-stone-400 uppercase tracking-wider">Tours Activos</div>
+              </div>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 hover:border-emerald-200 transition-all group">
+                <div className="text-3xl font-black text-stone-900 group-hover:text-emerald-600 transition-colors">{reviews.length}</div>
+                <div className="text-xs font-bold text-stone-400 uppercase tracking-wider">Reseñas Totales</div>
+              </div>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 hover:border-emerald-200 transition-all group">
+                <div className="text-3xl font-black text-stone-900 group-hover:text-emerald-600 transition-colors">{reviews.filter(r => r.status === 'pending').length}</div>
+                <div className="text-xs font-bold text-stone-400 uppercase tracking-wider">Reseñas Pendientes</div>
               </div>
             </div>
           </div>
@@ -217,11 +232,11 @@ export default function AdminPanel({ user }: { user: User }) {
 
         {activeTab === 'tours' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h2 className="text-2xl font-bold text-stone-900">Gestión de Tours</h2>
               <button 
                 onClick={startAdd}
-                className="flex items-center bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+                className="w-full sm:w-auto flex items-center justify-center bg-emerald-600 text-white px-4 py-2.5 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
               >
                 <Plus size={20} className="mr-2" />
                 Nuevo Tour
@@ -229,61 +244,96 @@ export default function AdminPanel({ user }: { user: User }) {
             </div>
 
             {/* Sub-tabs */}
-            <div className="flex space-x-4 border-b border-stone-200">
+            <div className="flex space-x-4 border-b border-stone-200 overflow-x-auto no-scrollbar">
               <button 
                 onClick={() => setTourSubTab('nacional')}
-                className={`pb-2 px-4 text-sm font-bold transition-colors relative ${tourSubTab === 'nacional' ? 'text-emerald-600' : 'text-stone-500 hover:text-stone-700'}`}
+                className={`flex-shrink-0 pb-2 px-4 text-sm font-bold transition-colors relative ${tourSubTab === 'nacional' ? 'text-emerald-600' : 'text-stone-500 hover:text-stone-700'}`}
               >
                 Nacionales
                 {tourSubTab === 'nacional' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600"></div>}
               </button>
               <button 
                 onClick={() => setTourSubTab('internacional')}
-                className={`pb-2 px-4 text-sm font-bold transition-colors relative ${tourSubTab === 'internacional' ? 'text-emerald-600' : 'text-stone-500 hover:text-stone-700'}`}
+                className={`flex-shrink-0 pb-2 px-4 text-sm font-bold transition-colors relative ${tourSubTab === 'internacional' ? 'text-emerald-600' : 'text-stone-500 hover:text-stone-700'}`}
               >
                 Internacionales
                 {tourSubTab === 'internacional' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600"></div>}
               </button>
             </div>
 
+            {/* Tours List - Responsive Layout */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-stone-200">
-              <table className="min-w-full divide-y divide-stone-200">
-                <thead className="bg-stone-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Tour</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Estado</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Precio</th>
-                    <th className="px-6 py-3 text-right text-xs font-bold text-stone-500 uppercase">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-stone-200">
-                  {tours.filter(t => t.category === tourSubTab).map((tour) => (
-                    <tr key={tour.id} className="hover:bg-stone-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center">
-                          <img className="h-10 w-10 rounded-lg object-cover mr-3" src={tour.images?.[0] || ''} alt="" />
-                          <div>
-                            <div className="text-sm font-bold text-stone-900">{tour.title}</div>
-                            <div className="text-xs text-stone-500">{tour.location}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 text-[10px] font-bold rounded-full uppercase ${tour.active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                          {tour.active ? 'Activo' : 'Inactivo'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-xs font-bold text-stone-700">₡{tour.price?.crc?.toLocaleString()}</div>
-                      </td>
-                      <td className="px-6 py-4 text-right space-x-3">
-                        <button onClick={() => startEdit(tour)} className="text-stone-400 hover:text-emerald-600"><Edit size={18} /></button>
-                        <button onClick={() => tourService.deleteTour(tour.id)} className="text-stone-400 hover:text-red-600"><Trash2 size={18} /></button>
-                      </td>
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full divide-y divide-stone-200">
+                  <thead className="bg-stone-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Tour</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Estado</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Precio</th>
+                      <th className="px-6 py-3 text-right text-xs font-bold text-stone-500 uppercase">Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-stone-200">
+                    {tours.filter(t => t.category === tourSubTab).map((tour) => (
+                      <tr key={tour.id} className="hover:bg-stone-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center">
+                            <img className="h-10 w-10 rounded-lg object-cover mr-3" src={tour.images?.[0] || ''} alt="" />
+                            <div>
+                              <div className="text-sm font-bold text-stone-900">{tour.title}</div>
+                              <div className="text-xs text-stone-500">{tour.location}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1 text-[10px] font-bold rounded-full uppercase ${tour.active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                            {tour.active ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-xs font-bold text-stone-700">₡{tour.price?.crc?.toLocaleString()}</div>
+                        </td>
+                        <td className="px-6 py-4 text-right space-x-3">
+                          <button onClick={() => startEdit(tour)} className="text-stone-400 hover:text-emerald-600"><Edit size={18} /></button>
+                          <button onClick={() => tourService.deleteTour(tour.id)} className="text-stone-400 hover:text-red-600"><Trash2 size={18} /></button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden divide-y divide-stone-100">
+                {tours.filter(t => t.category === tourSubTab).map((tour) => (
+                  <div key={tour.id} className="p-4 flex flex-col space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <img className="h-12 w-12 rounded-lg object-cover mr-3" src={tour.images?.[0] || ''} alt="" />
+                        <div>
+                          <div className="text-sm font-bold text-stone-900">{tour.title}</div>
+                          <div className="text-xs text-stone-500">{tour.location}</div>
+                        </div>
+                      </div>
+                      <span className={`px-2 py-1 text-[10px] font-bold rounded-full uppercase ${tour.active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                        {tour.active ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="text-sm font-bold text-emerald-700">₡{tour.price?.crc?.toLocaleString()}</div>
+                      <div className="flex items-center space-x-4">
+                        <button onClick={() => startEdit(tour)} className="flex items-center text-stone-600 text-xs font-bold">
+                          <Edit size={16} className="mr-1" /> Editar
+                        </button>
+                        <button onClick={() => tourService.deleteTour(tour.id)} className="flex items-center text-red-500 text-xs font-bold">
+                          <Trash2 size={16} className="mr-1" /> Eliminar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}

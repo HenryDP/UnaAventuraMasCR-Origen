@@ -83,7 +83,7 @@ export default function TourDetail() {
   return (
     <div className="bg-stone-50 min-h-screen pb-20">
       {/* Image Gallery / Hero */}
-      <div className="relative h-[60vh] w-full bg-stone-900 overflow-hidden">
+      <div className="relative h-[50vh] sm:h-[60vh] lg:h-[70vh] w-full bg-stone-900 overflow-hidden">
         {tour.images && tour.images.length > 0 ? (
           <>
             {/* Blurred Background Image */}
@@ -106,22 +106,22 @@ export default function TourDetail() {
               <>
                 <button 
                   onClick={prevImage}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full backdrop-blur-sm transition-all"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1.5 sm:p-2 rounded-full backdrop-blur-sm transition-all z-20"
                 >
-                  <ChevronLeft size={24} />
+                  <ChevronLeft size={20} className="sm:w-6 sm:h-6" />
                 </button>
                 <button 
                   onClick={nextImage}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full backdrop-blur-sm transition-all"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1.5 sm:p-2 rounded-full backdrop-blur-sm transition-all z-20"
                 >
-                  <ChevronRight size={24} />
+                  <ChevronRight size={20} className="sm:w-6 sm:h-6" />
                 </button>
-                <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-2">
+                <div className="absolute bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-20">
                   {tour.images.map((_, idx) => (
                     <button 
                       key={idx}
                       onClick={() => setActiveImageIndex(idx)}
-                      className={`w-2 h-2 rounded-full transition-all ${idx === activeImageIndex ? 'bg-emerald-500 w-6' : 'bg-white/50'}`}
+                      className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all ${idx === activeImageIndex ? 'bg-emerald-500 w-4 sm:w-6' : 'bg-white/50'}`}
                     />
                   ))}
                 </div>
@@ -135,10 +135,10 @@ export default function TourDetail() {
         )}
         
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-8 sm:pb-12">
             <div className="flex justify-between items-start mb-4">
-              <Link to="/tours" className="text-white/80 hover:text-white flex items-center transition-colors">
-                <ArrowLeft size={20} className="mr-2" />
+              <Link to="/tours" className="text-white/80 hover:text-white flex items-center transition-colors text-sm sm:text-base">
+                <ArrowLeft size={18} className="mr-2 sm:w-5 sm:h-5" />
                 Volver
               </Link>
               <div className="flex items-center gap-3">

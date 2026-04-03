@@ -233,13 +233,13 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
-        <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
-          <h2 className="text-xl font-bold text-stone-900">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-white w-full h-full sm:h-auto sm:rounded-2xl shadow-2xl sm:max-w-4xl sm:max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+        <div className="p-4 sm:p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+          <h2 className="text-lg sm:text-xl font-bold text-stone-900 truncate pr-4">
             {tour ? `Editar: ${tour.title}` : 'Añadir Nuevo Tour'}
           </h2>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {tour && (
               <button 
                 onClick={handleDelete}
@@ -249,41 +249,42 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
                 <Trash2 size={20} />
               </button>
             )}
-            <button onClick={onClose} className="text-stone-400 hover:text-stone-600 transition-colors">
+            <button onClick={onClose} className="text-stone-400 hover:text-stone-600 transition-colors p-2">
               <X size={24} />
             </button>
           </div>
         </div>
 
-        {/* ¡AQUÍ ESTABA EL ERROR! Se eliminó el punto (.) antes de la palabra grow */}
-        <form onSubmit={handleSubmit(onSubmit)} className="grow overflow-y-auto p-8 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-grow overflow-y-auto p-4 sm:p-8 space-y-8 no-scrollbar">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             <div className="space-y-6">
               <h3 className="font-bold text-emerald-600 text-sm uppercase tracking-wider border-b border-emerald-100 pb-2">Información Básica</h3>
               <div>
                 <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Título del Tour</label>
-                <input {...register('title', { required: true })} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <input {...register('title', { required: true })} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Ubicación</label>
-                <input {...register('location', { required: true })} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <input {...register('location', { required: true })} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" />
               </div>
-              <div>
-                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Duración</label>
-                <input {...register('duration', { required: true })} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Fecha del Tour</label>
-                <input {...register('date')} type="text" placeholder="Ej: 15 de Octubre, 2023" className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Duración</label>
+                  <input {...register('duration', { required: true })} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Fecha</label>
+                  <input {...register('date')} type="text" placeholder="Ej: 15 de Octubre" className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Kilometraje (km)</label>
-                  <input {...register('distance')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Ej: 5km" />
+                  <input {...register('distance')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ej: 5km" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Nivel de Caminata</label>
-                  <select {...register('difficulty')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Nivel</label>
+                  <select {...register('difficulty')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none bg-white text-sm">
                     <option value="">No aplica</option>
                     <option value="principiante">Principiante</option>
                     <option value="intermedio">Intermedio</option>
@@ -317,7 +318,7 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Categoría</label>
-                  <select {...register('category')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                  <select {...register('category')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none bg-white text-sm">
                     <option value="nacional">Nacional</option>
                     <option value="internacional">Internacional</option>
                   </select>
@@ -332,33 +333,31 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Precio Nacional (₡)</label>
-                  <input type="number" {...register('price_national')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Ej: 15000" />
+                  <input type="number" {...register('price_national')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ej: 15000" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Precio Extranjero ($)</label>
-                  <input type="number" {...register('price_foreigner')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Ej: 45" />
+                  <input type="number" {...register('price_foreigner')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ej: 45" />
                 </div>
               </div>
-              <div className="hidden">
-                <input type="hidden" {...register('currency_foreigner')} defaultValue="USD" />
-              </div>
+              
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Precio Colones (₡) - Legacy</label>
-                  <input type="number" {...register('price.crc')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Precio Colones (Legacy)</label>
+                  <input type="number" {...register('price.crc')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Precio Dólares ($) - Legacy</label>
-                  <input type="number" {...register('price.usd')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                  <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Precio Dólares (Legacy)</label>
+                  <input type="number" {...register('price.usd')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" />
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Link de Pago (Completo)</label>
-                <input {...register('paymentLink')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <input {...register('paymentLink')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Link de Reserva (Parcial)</label>
-                <input {...register('reserveLink')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <input {...register('reserveLink')} className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" />
               </div>
             </div>
           </div>
@@ -366,9 +365,9 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
           <div className="space-y-6">
             <h3 className="font-bold text-emerald-600 text-sm uppercase tracking-wider border-b border-emerald-100 pb-2">Multimedia y Detalles</h3>
             <div>
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
                 <label className="block text-xs font-bold text-stone-500 uppercase">Imágenes del Tour</label>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <input
                     type="file"
                     multiple
@@ -381,19 +380,19 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploadingImage || isEditingImageAI}
-                    className="flex items-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-700 px-3 py-2 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
                   >
                     {isUploadingImage ? (
                       <div className="flex items-center gap-2">
                         <Loader2 size={14} className="animate-spin" />
                         <span className="text-[10px]">
-                          {uploadProgress ? `Subiendo ${uploadProgress.current}/${uploadProgress.total}...` : 'Comprimiendo...'}
+                          {uploadProgress ? `${uploadProgress.current}/${uploadProgress.total}` : '...'}
                         </span>
                       </div>
                     ) : (
                       <ImageIcon size={14} />
                     )}
-                    {isUploadingImage ? '' : 'Subir desde Galería'}
+                    {isUploadingImage ? 'Subiendo' : 'Subir Galería'}
                   </button>
                 </div>
               </div>
@@ -401,7 +400,7 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
               {pendingImage && (
                 <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl space-y-3 mb-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-emerald-800 uppercase">Imagen Seleccionada: {pendingImage.name}</span>
+                    <span className="text-[10px] font-bold text-emerald-800 uppercase truncate pr-4">Imagen: {pendingImage.name}</span>
                     <button 
                       type="button" 
                       onClick={() => setPendingImage(null)}
@@ -411,16 +410,15 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
                     </button>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-[10px] font-bold text-emerald-600 uppercase">Instrucciones para la IA (Opcional)</label>
+                    <label className="block text-[10px] font-bold text-emerald-600 uppercase">Instrucciones IA</label>
                     <input 
                       type="text" 
                       value={aiImagePrompt}
                       onChange={(e) => setAiImagePrompt(e.target.value)}
                       className="w-full p-2 text-xs rounded-lg border border-emerald-200 focus:ring-1 focus:ring-emerald-500 outline-none"
-                      placeholder="Ej: Mejora la iluminación y haz los colores más vivos"
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <button
                       type="button"
                       onClick={handleAIImageEdit}
@@ -455,7 +453,7 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
                 
                 {/* Image Preview Grid */}
                 {currentImages.length > 0 && (
-                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-2">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 pt-2">
                     {currentImages.map((url: string, idx: number) => (
                       <div key={idx} className="aspect-square rounded-lg overflow-hidden border border-stone-200 bg-stone-100 group relative">
                         <img src={url} alt={`Preview ${idx}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -475,48 +473,51 @@ export default function TourModal({ tour, isOpen, onClose }: TourModalProps) {
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               <div>
-                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">¿Qué incluye? (Línea)</label>
+                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">¿Qué incluye?</label>
                 <textarea 
                   {...register('included')} 
                   rows={4} 
                   className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" 
+                  placeholder="Uno por línea"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Recomendaciones (Línea)</label>
+                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Recomendaciones</label>
                 <textarea 
                   {...register('recommendations')} 
                   rows={4} 
                   className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" 
+                  placeholder="Uno por línea"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Puntos de Salida / Bus o Microbús (Línea)</label>
+              <div className="sm:col-span-2 md:col-span-1">
+                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Puntos de Salida</label>
                 <textarea 
                   {...register('pickupLocations')} 
                   rows={4} 
                   className="w-full p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" 
+                  placeholder="Uno por línea"
                 />
               </div>
             </div>
           </div>
         </form>
 
-        <div className="p-6 border-t border-stone-100 bg-stone-50 flex justify-end gap-4">
+        <div className="p-4 sm:p-6 border-t border-stone-100 bg-stone-50 flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
           <button 
             onClick={onClose}
-            className="px-6 py-2.5 rounded-xl border border-stone-200 text-stone-600 font-bold hover:bg-stone-100 transition-colors"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl border border-stone-200 text-stone-600 font-bold hover:bg-stone-100 transition-colors text-sm"
           >
             Cancelar
           </button>
           <button 
             onClick={handleSubmit(onSubmit)}
             disabled={isSubmitting}
-            className="flex items-center bg-emerald-600 text-white px-10 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg disabled:opacity-50"
+            className="w-full sm:w-auto flex items-center justify-center bg-emerald-600 text-white px-10 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg disabled:opacity-50 text-sm"
           >
-            <Save size={20} className="mr-2" />
+            <Save size={18} className="mr-2" />
             {isSubmitting ? 'Guardando...' : 'Guardar Tour'}
           </button>
         </div>

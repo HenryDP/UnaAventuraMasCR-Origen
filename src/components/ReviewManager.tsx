@@ -72,135 +72,225 @@ export default function ReviewManager() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-stone-200">
-        <table className="min-w-full divide-y divide-stone-200">
-          <thead className="bg-stone-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Usuario</th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Reseña</th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Estado</th>
-              <th className="px-6 py-3 text-right text-xs font-bold text-stone-500 uppercase">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-stone-200">
-            {reviews.map((review) => (
-              <tr key={review.id} className="hover:bg-stone-50 transition-colors">
-                <td className="px-6 py-4">
-                  {editingId === review.id ? (
-                    <div className="space-y-2">
-                      <input 
-                        type="text"
-                        value={editData.userName}
-                        onChange={(e) => setEditData({...editData, userName: e.target.value})}
-                        className="text-sm font-bold text-stone-900 border rounded px-2 py-1 w-full"
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="min-w-full divide-y divide-stone-200">
+            <thead className="bg-stone-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Usuario</th>
+                <th className="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Reseña</th>
+                <th className="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Estado</th>
+                <th className="px-6 py-3 text-right text-xs font-bold text-stone-500 uppercase">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-stone-200">
+              {reviews.map((review) => (
+                <tr key={review.id} className="hover:bg-stone-50 transition-colors">
+                  <td className="px-6 py-4">
+                    {editingId === review.id ? (
+                      <div className="space-y-2">
+                        <input 
+                          type="text"
+                          value={editData.userName}
+                          onChange={(e) => setEditData({...editData, userName: e.target.value})}
+                          className="text-sm font-bold text-stone-900 border rounded px-2 py-1 w-full"
+                        />
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              onClick={() => setEditData({...editData, rating: star})}
+                              className={`text-amber-400 ${editData.rating >= star ? 'opacity-100' : 'opacity-30'}`}
+                            >
+                              <Star size={12} fill={editData.rating >= star ? "currentColor" : "none"} />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="text-sm font-bold text-stone-900">{review.userName}</div>
+                        <div className="flex text-amber-400">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} size={12} fill={i < review.rating ? "currentColor" : "none"} />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {editingId === review.id ? (
+                      <textarea 
+                        value={editData.comment}
+                        onChange={(e) => setEditData({...editData, comment: e.target.value})}
+                        className="text-sm text-stone-600 border rounded px-2 py-1 w-full"
+                        rows={2}
                       />
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            onClick={() => setEditData({...editData, rating: star})}
-                            className={`text-amber-400 ${editData.rating >= star ? 'opacity-100' : 'opacity-30'}`}
+                    ) : (
+                      <p className="text-sm text-stone-600 max-w-md line-clamp-2">{review.comment}</p>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 text-[10px] font-bold rounded-full uppercase ${
+                      review.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 
+                      review.status === 'pending' ? 'bg-amber-100 text-amber-700' : 
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {review.status === 'approved' ? <CheckCircle size={10} /> : 
+                       review.status === 'pending' ? <Clock size={10} /> : 
+                       <XCircle size={10} />}
+                      {review.status === 'approved' ? 'Aprobada' : 
+                       review.status === 'pending' ? 'Pendiente' : 
+                       'Rechazada'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right space-x-2">
+                    {editingId === review.id ? (
+                      <>
+                        <button 
+                          onClick={saveEdit}
+                          className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
+                          title="Guardar"
+                        >
+                          <Save size={18} />
+                        </button>
+                        <button 
+                          onClick={() => setEditingId(null)}
+                          className="p-1 text-stone-400 hover:bg-stone-50 rounded"
+                          title="Cancelar"
+                        >
+                          <X size={18} />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button 
+                          onClick={() => startEdit(review)}
+                          className="p-1 text-stone-600 hover:bg-stone-50 rounded"
+                          title="Editar"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        {review.status !== 'approved' && (
+                          <button 
+                            onClick={() => updateStatus(review.id, 'approved')}
+                            className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
+                            title="Aprobar"
                           >
-                            <Star size={12} fill={editData.rating >= star ? "currentColor" : "none"} />
+                            <CheckCircle size={18} />
                           </button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="text-sm font-bold text-stone-900">{review.userName}</div>
-                      <div className="flex text-amber-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} size={12} fill={i < review.rating ? "currentColor" : "none"} />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </td>
-                <td className="px-6 py-4">
+                        )}
+                        {review.status !== 'rejected' && (
+                          <button 
+                            onClick={() => updateStatus(review.id, 'rejected')}
+                            className="p-1 text-amber-600 hover:bg-amber-50 rounded"
+                            title="Rechazar"
+                          >
+                            <XCircle size={18} />
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => deleteReview(review.id)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          title="Eliminar"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden divide-y divide-stone-100">
+          {reviews.map((review) => (
+            <div key={review.id} className="p-4 space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
                   {editingId === review.id ? (
-                    <textarea 
-                      value={editData.comment}
-                      onChange={(e) => setEditData({...editData, comment: e.target.value})}
-                      className="text-sm text-stone-600 border rounded px-2 py-1 w-full"
-                      rows={2}
+                    <input 
+                      type="text"
+                      value={editData.userName}
+                      onChange={(e) => setEditData({...editData, userName: e.target.value})}
+                      className="text-sm font-bold text-stone-900 border rounded px-2 py-1 w-full mb-1"
                     />
                   ) : (
-                    <p className="text-sm text-stone-600 max-w-md line-clamp-2">{review.comment}</p>
+                    <div className="text-sm font-bold text-stone-900">{review.userName}</div>
                   )}
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 text-[10px] font-bold rounded-full uppercase ${
-                    review.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 
-                    review.status === 'pending' ? 'bg-amber-100 text-amber-700' : 
-                    'bg-red-100 text-red-700'
-                  }`}>
-                    {review.status === 'approved' ? <CheckCircle size={10} /> : 
-                     review.status === 'pending' ? <Clock size={10} /> : 
-                     <XCircle size={10} />}
-                    {review.status === 'approved' ? 'Aprobada' : 
-                     review.status === 'pending' ? 'Pendiente' : 
-                     'Rechazada'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right space-x-2">
-                  {editingId === review.id ? (
-                    <>
-                      <button 
-                        onClick={saveEdit}
-                        className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
-                        title="Guardar"
-                      >
-                        <Save size={18} />
+                  <div className="flex text-amber-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star 
+                        key={i} 
+                        size={12} 
+                        fill={i < (editingId === review.id ? editData.rating : review.rating) ? "currentColor" : "none"} 
+                        onClick={() => editingId === review.id && setEditData({...editData, rating: i + 1})}
+                        className={editingId === review.id ? 'cursor-pointer' : ''}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <span className={`inline-flex items-center gap-1 px-2 py-1 text-[10px] font-bold rounded-full uppercase ${
+                  review.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 
+                  review.status === 'pending' ? 'bg-amber-100 text-amber-700' : 
+                  'bg-red-100 text-red-700'
+                }`}>
+                  {review.status === 'approved' ? 'Aprobada' : 
+                   review.status === 'pending' ? 'Pendiente' : 
+                   'Rechazada'}
+                </span>
+              </div>
+              
+              <div>
+                {editingId === review.id ? (
+                  <textarea 
+                    value={editData.comment}
+                    onChange={(e) => setEditData({...editData, comment: e.target.value})}
+                    className="text-sm text-stone-600 border rounded px-2 py-1 w-full"
+                    rows={3}
+                  />
+                ) : (
+                  <p className="text-sm text-stone-600">{review.comment}</p>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                {editingId === review.id ? (
+                  <>
+                    <button onClick={saveEdit} className="flex items-center gap-1 bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-bold">
+                      <Save size={14} /> Guardar
+                    </button>
+                    <button onClick={() => setEditingId(null)} className="flex items-center gap-1 bg-stone-100 text-stone-600 px-3 py-1.5 rounded text-xs font-bold">
+                      <X size={14} /> Cancelar
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => startEdit(review)} className="p-2 text-stone-600 bg-stone-50 rounded-lg">
+                      <Edit2 size={16} />
+                    </button>
+                    {review.status !== 'approved' && (
+                      <button onClick={() => updateStatus(review.id, 'approved')} className="p-2 text-emerald-600 bg-emerald-50 rounded-lg">
+                        <CheckCircle size={16} />
                       </button>
-                      <button 
-                        onClick={() => setEditingId(null)}
-                        className="p-1 text-stone-400 hover:bg-stone-50 rounded"
-                        title="Cancelar"
-                      >
-                        <X size={18} />
+                    )}
+                    {review.status !== 'rejected' && (
+                      <button onClick={() => updateStatus(review.id, 'rejected')} className="p-2 text-amber-600 bg-amber-50 rounded-lg">
+                        <XCircle size={16} />
                       </button>
-                    </>
-                  ) : (
-                    <>
-                      <button 
-                        onClick={() => startEdit(review)}
-                        className="p-1 text-stone-600 hover:bg-stone-50 rounded"
-                        title="Editar"
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                      {review.status !== 'approved' && (
-                        <button 
-                          onClick={() => updateStatus(review.id, 'approved')}
-                          className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
-                          title="Aprobar"
-                        >
-                          <CheckCircle size={18} />
-                        </button>
-                      )}
-                      {review.status !== 'rejected' && (
-                        <button 
-                          onClick={() => updateStatus(review.id, 'rejected')}
-                          className="p-1 text-amber-600 hover:bg-amber-50 rounded"
-                          title="Rechazar"
-                        >
-                          <XCircle size={18} />
-                        </button>
-                      )}
-                      <button 
-                        onClick={() => deleteReview(review.id)}
-                        className="p-1 text-red-600 hover:bg-red-50 rounded"
-                        title="Eliminar"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                    )}
+                    <button onClick={() => deleteReview(review.id)} className="p-2 text-red-600 bg-red-50 rounded-lg">
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

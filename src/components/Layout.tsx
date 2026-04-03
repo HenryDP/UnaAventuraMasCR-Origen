@@ -118,39 +118,68 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden bg-white border-b border-stone-100 animate-in slide-in-from-top duration-300">
-            <div className="px-4 pt-2 pb-6 space-y-2">
-              <Link 
-                to="/" 
-                className="block px-4 py-3 text-base font-bold text-stone-900 hover:bg-stone-50 rounded-xl"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Inicio
-              </Link>
-              <Link 
-                to="/tours" 
-                className="block px-4 py-3 text-base font-bold text-stone-900 hover:bg-stone-50 rounded-xl"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Tours
-              </Link>
-              <Link 
-                to="/admin" 
-                className="block px-4 py-3 text-base font-bold text-stone-400 hover:bg-stone-50 rounded-xl"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Admin
-              </Link>
-              <div className="pt-4">
+          <div className="md:hidden fixed inset-0 z-[100] bg-white animate-in slide-in-from-right duration-300">
+            <div className="flex flex-col h-full">
+              <div className="flex justify-between items-center p-6 border-b border-stone-100">
+                <Link to="/" className="flex items-center space-x-2" onClick={() => setIsMenuOpen(false)}>
+                  {siteConfig?.logoUrl ? (
+                    <img 
+                      src={siteConfig.logoUrl} 
+                      alt="Logo" 
+                      className="w-8 h-8 object-contain"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
+                      <span className="text-white font-black text-lg">A</span>
+                    </div>
+                  )}
+                  <span className="text-sm font-black tracking-tighter uppercase">{siteConfig?.headerTitle || "UNA AVENTURA MÁS"}</span>
+                </Link>
+                <button onClick={() => setIsMenuOpen(false)} className="text-stone-600 p-2">
+                  <X size={28} />
+                </button>
+              </div>
+              
+              <div className="flex-grow overflow-y-auto p-6 space-y-4">
+                <Link 
+                  to="/" 
+                  className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Inicio
+                </Link>
+                <Link 
+                  to="/tours" 
+                  className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/tours' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Tours
+                </Link>
+                <Link 
+                  to="/admin" 
+                  className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/admin' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-400 hover:bg-stone-50'}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Admin
+                </Link>
+              </div>
+
+              <div className="p-6 border-t border-stone-100 space-y-4">
                 <a 
                   href={whatsappLink}
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="block w-full text-center bg-emerald-600 text-white px-6 py-4 rounded-xl text-base font-bold shadow-lg"
+                  className="flex items-center justify-center gap-3 w-full bg-emerald-600 text-white px-6 py-4 rounded-2xl text-lg font-black shadow-xl active:scale-95 transition-all"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Reservar por WhatsApp
+                  <Phone size={20} />
+                  Reservar Ahora
                 </a>
+                <div className="flex justify-center space-x-6 pt-4">
+                  <a href={siteConfig?.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-emerald-600"><Facebook size={24} /></a>
+                  <a href={siteConfig?.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-emerald-600"><Instagram size={24} /></a>
+                </div>
               </div>
             </div>
           </div>
