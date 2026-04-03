@@ -18,16 +18,18 @@ export default function ReviewForm({ onSuccess }: ReviewFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userName || !comment) return;
+    if (!userName.trim() || !comment.trim()) {
+      alert('Por favor completa todos los campos.');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
       await tourService.addReview({
         userName,
         comment,
-        rating,
-        status: 'approved' // Auto-approve for now
-      } as any); // Type cast because addReview in tourService expects specific fields
+        rating
+      });
       setIsSuccess(true);
       setTimeout(() => {
         setIsSuccess(false);
