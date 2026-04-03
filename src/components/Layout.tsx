@@ -69,31 +69,32 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20">
             <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-2">
-                {siteConfig?.logoUrl ? (
-                  <img 
-                    src={siteConfig.logoUrl} 
-                    alt="Logo" 
-                    className="w-10 h-10 object-contain"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-black text-xl">A</span>
+              <div onDoubleClick={() => window.location.href = '/admin'} className="flex items-center cursor-pointer">
+                <Link to="/" className="flex items-center space-x-2">
+                  {siteConfig?.logoUrl ? (
+                    <img 
+                      src={siteConfig.logoUrl} 
+                      alt="Logo" 
+                      className="w-10 h-10 object-contain"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
+                      <span className="text-white font-black text-xl">A</span>
+                    </div>
+                  )}
+                  <div className="flex flex-col">
+                    <span className="text-lg font-black tracking-tighter leading-none uppercase">{siteConfig?.headerTitle || "UNA AVENTURA MÁS"}</span>
+                    <span className="text-[10px] font-bold text-emerald-600 tracking-widest uppercase">{siteConfig?.headerSubtitle || "Costa Rica"}</span>
                   </div>
-                )}
-                <div className="flex flex-col">
-                  <span className="text-lg font-black tracking-tighter leading-none uppercase">{siteConfig?.headerTitle || "UNA AVENTURA MÁS"}</span>
-                  <span className="text-[10px] font-bold text-emerald-600 tracking-widest uppercase">{siteConfig?.headerSubtitle || "Costa Rica"}</span>
-                </div>
-              </Link>
+                </Link>
+              </div>
             </div>
             
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-8">
               <Link to="/" className={`text-sm font-bold transition-colors ${location.pathname === '/' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}`}>Inicio</Link>
               <Link to="/tours" className={`text-sm font-bold transition-colors ${location.pathname === '/tours' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}`}>Tours</Link>
-              <Link to="/admin" className="text-sm font-bold text-stone-400 hover:text-stone-600 transition-colors">Admin</Link>
               <a 
                 href={whatsappLink}
                 target="_blank" 
@@ -155,13 +156,6 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Tours
-                </Link>
-                <Link 
-                  to="/admin" 
-                  className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/admin' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-400 hover:bg-stone-50'}`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Admin
                 </Link>
               </div>
 
@@ -253,7 +247,6 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                 <li><Link to="/" className="text-stone-400 hover:text-emerald-400 transition-colors">Inicio</Link></li>
                 <li><Link to="/tours" className="text-stone-400 hover:text-emerald-400 transition-colors">Tours Nacionales</Link></li>
                 <li><Link to="/tours" className="text-stone-400 hover:text-emerald-400 transition-colors">Tours Internacionales</Link></li>
-                <li><Link to="/admin" className="text-stone-400 hover:text-emerald-400 transition-colors">Administración</Link></li>
               </ul>
             </div>
           </div>
