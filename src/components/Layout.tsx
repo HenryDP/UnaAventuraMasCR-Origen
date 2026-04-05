@@ -21,6 +21,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const { isAdmin } = useAuth();
   const location = useLocation();
+  const isImmersivePage = location.pathname === '/arma-tu-viaje';
 
   useEffect(() => {
     if (!db) return;
@@ -65,12 +66,142 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
       )}
 
       {/* Navigation */}
-      <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-[36px]' : 'top-0'} z-50 border-b border-stone-100`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-20">
-            <div className="flex items-center">
-              <div onDoubleClick={() => window.location.href = '/admin'} className="flex items-center cursor-pointer">
-                <Link to="/" className="flex items-center space-x-2">
+      {!isImmersivePage && (
+        <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-[36px]' : 'top-0'} z-50 border-b border-stone-100`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between h-20">
+              <div className="flex items-center">
+                <div onDoubleClick={() => window.location.href = '/admin'} className="flex items-center cursor-pointer">
+                  <Link to="/" className="flex items-center space-x-2">
+                    {siteConfig?.logoUrl ? (
+                      <img 
+                        src={siteConfig.logoUrl} 
+                        alt="Logo" 
+                        className="w-10 h-10 object-contain"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-black text-xl">A</span>
+                      </div>
+                    )}
+                    <div className="flex flex-col">
+                      <span className="text-lg font-black tracking-tighter leading-none uppercase">{siteConfig?.headerTitle || "UNA AVENTURA MÁS"}</span>
+                      <span className="text-[10px] font-bold text-emerald-600 tracking-widest uppercase">{siteConfig?.headerSubtitle || "Costa Rica"}</span>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+              
+              {/* Desktop Menu */}
+              <div className="hidden md:flex items-center space-x-8">
+                <Link to="/" className={`text-sm font-bold transition-colors ${location.pathname === '/' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}`}>Inicio</Link>
+                <Link to="/tours" className={`text-sm font-bold transition-colors ${location.pathname === '/tours' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}`}>Tours</Link>
+                <Link to="/arma-tu-viaje" className={`text-sm font-bold transition-colors ${location.pathname === '/arma-tu-viaje' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}`}>Arma tu Viaje</Link>
+                <a 
+                  href={whatsappLink}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-emerald-600 text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                >
+                  Reservar Ahora
+                </a>
+              </div>
+
+              {/* Mobile menu button */}
+              <div className="md:hidden flex items-center">
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="text-stone-600 hover:text-emerald-600 p-2"
+                >
+                  {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Menu */}
+          {isMenuOpen && (
+            <div className="md:hidden fixed inset-0 z-[100] bg-white animate-in slide-in-from-right duration-300">
+              <div className="flex flex-col h-full">
+                <div className="flex justify-between items-center p-6 border-b border-stone-100">
+                  <Link to="/" className="flex items-center space-x-2" onClick={() => setIsMenuOpen(false)}>
+                    {siteConfig?.logoUrl ? (
+                      <img 
+                        src={siteConfig.logoUrl} 
+                        alt="Logo" 
+                        className="w-8 h-8 object-contain"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-black text-lg">A</span>
+                      </div>
+                    )}
+                    <span className="text-sm font-black tracking-tighter uppercase">{siteConfig?.headerTitle || "UNA AVENTURA MÁS"}</span>
+                  </Link>
+                  <button onClick={() => setIsMenuOpen(false)} className="text-stone-600 p-2">
+                    <X size={28} />
+                  </button>
+                </div>
+                
+                <div className="flex-grow overflow-y-auto p-6 space-y-4">
+                  <Link 
+                    to="/" 
+                    className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Inicio
+                  </Link>
+                  <Link 
+                    to="/tours" 
+                    className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/tours' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Tours
+                  </Link>
+                  <Link 
+                    to="/arma-tu-viaje" 
+                    className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/arma-tu-viaje' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Arma tu Viaje
+                  </Link>
+                </div>
+
+                <div className="p-6 border-t border-stone-100 space-y-4">
+                  <a 
+                    href={whatsappLink}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-3 w-full bg-emerald-600 text-white px-6 py-4 rounded-2xl text-lg font-black shadow-xl active:scale-95 transition-all"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Phone size={20} />
+                    Reservar Ahora
+                  </a>
+                  <div className="flex justify-center space-x-6 pt-4">
+                    <a href={siteConfig?.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-emerald-600"><Facebook size={24} /></a>
+                    <a href={siteConfig?.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-emerald-600"><Instagram size={24} /></a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </nav>
+      )}
+
+      <main className="flex-grow">
+        {children || <Outlet />}
+      </main>
+
+      {/* Footer */}
+      {!isImmersivePage && (
+        <footer className="bg-stone-900 text-white pt-20 pb-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+              <div className="col-span-1 md:col-span-2">
+                <Link to="/" className="flex items-center space-x-2 mb-6">
                   {siteConfig?.logoUrl ? (
                     <img 
                       src={siteConfig.logoUrl} 
@@ -84,184 +215,66 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                     </div>
                   )}
                   <div className="flex flex-col">
-                    <span className="text-lg font-black tracking-tighter leading-none uppercase">{siteConfig?.headerTitle || "UNA AVENTURA MÁS"}</span>
-                    <span className="text-[10px] font-bold text-emerald-600 tracking-widest uppercase">{siteConfig?.headerSubtitle || "Costa Rica"}</span>
+                    <span className="text-lg font-black tracking-tighter leading-none text-white">UNA AVENTURA MÁS</span>
+                    <span className="text-[10px] font-bold text-emerald-400 tracking-widest uppercase">Costa Rica</span>
                   </div>
                 </Link>
-              </div>
-            </div>
-            
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-8">
-              <Link to="/" className={`text-sm font-bold transition-colors ${location.pathname === '/' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}`}>Inicio</Link>
-              <Link to="/tours" className={`text-sm font-bold transition-colors ${location.pathname === '/tours' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}`}>Tours</Link>
-              <a 
-                href={whatsappLink}
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-emerald-600 text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-              >
-                Reservar Ahora
-              </a>
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden flex items-center">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-stone-600 hover:text-emerald-600 p-2"
-              >
-                {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden fixed inset-0 z-[100] bg-white animate-in slide-in-from-right duration-300">
-            <div className="flex flex-col h-full">
-              <div className="flex justify-between items-center p-6 border-b border-stone-100">
-                <Link to="/" className="flex items-center space-x-2" onClick={() => setIsMenuOpen(false)}>
-                  {siteConfig?.logoUrl ? (
-                    <img 
-                      src={siteConfig.logoUrl} 
-                      alt="Logo" 
-                      className="w-8 h-8 object-contain"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-                      <span className="text-white font-black text-lg">A</span>
-                    </div>
-                  )}
-                  <span className="text-sm font-black tracking-tighter uppercase">{siteConfig?.headerTitle || "UNA AVENTURA MÁS"}</span>
-                </Link>
-                <button onClick={() => setIsMenuOpen(false)} className="text-stone-600 p-2">
-                  <X size={28} />
-                </button>
+                <p className="text-stone-400 max-w-md mb-8 leading-relaxed">
+                  {siteConfig?.companyDescription || "Somos tu puerta de entrada a las mejores aventuras en Costa Rica y el mundo. Experiencias auténticas, seguras y diseñadas para crear recuerdos inolvidables."}
+                </p>
+                <div className="flex space-x-4">
+                  <a href={siteConfig?.facebookUrl || "https://facebook.com"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-stone-800 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors">
+                    <Facebook size={20} />
+                  </a>
+                  <a href={siteConfig?.instagramUrl || "https://instagram.com"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-stone-800 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors">
+                    <Instagram size={20} />
+                  </a>
+                  <a href={siteConfig?.tiktokUrl || "https://tiktok.com"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-stone-800 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors">
+                    <TikTokIcon />
+                  </a>
+                </div>
               </div>
               
-              <div className="flex-grow overflow-y-auto p-6 space-y-4">
-                <Link 
-                  to="/" 
-                  className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Inicio
-                </Link>
-                <Link 
-                  to="/tours" 
-                  className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/tours' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Tours
-                </Link>
+              <div>
+                <h4 className="text-lg font-bold mb-6">Contacto</h4>
+                <ul className="space-y-4">
+                  <li className="flex items-start space-x-3 text-stone-400">
+                    <Phone size={18} className="text-emerald-500 mt-1 shrink-0" />
+                    <span>+{siteConfig?.whatsappNumber || "506 8888-8888"}</span>
+                  </li>
+                  <li className="flex items-start space-x-3 text-stone-400">
+                    <Mail size={18} className="text-emerald-500 mt-1 shrink-0" />
+                    <span>{siteConfig?.contactEmail || "info@unaaventuramas.cr"}</span>
+                  </li>
+                  <li className="flex items-start space-x-3 text-stone-400">
+                    <MapPin size={18} className="text-emerald-500 mt-1 shrink-0" />
+                    <span>San José, Costa Rica</span>
+                  </li>
+                </ul>
               </div>
 
-              <div className="p-6 border-t border-stone-100 space-y-4">
-                <a 
-                  href={whatsappLink}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-3 w-full bg-emerald-600 text-white px-6 py-4 rounded-2xl text-lg font-black shadow-xl active:scale-95 transition-all"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <Phone size={20} />
-                  Reservar Ahora
-                </a>
-                <div className="flex justify-center space-x-6 pt-4">
-                  <a href={siteConfig?.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-emerald-600"><Facebook size={24} /></a>
-                  <a href={siteConfig?.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-emerald-600"><Instagram size={24} /></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </nav>
-
-      <main className="flex-grow">
-        {children || <Outlet />}
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-stone-900 text-white pt-20 pb-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-            <div className="col-span-1 md:col-span-2">
-              <Link to="/" className="flex items-center space-x-2 mb-6">
-                {siteConfig?.logoUrl ? (
-                  <img 
-                    src={siteConfig.logoUrl} 
-                    alt="Logo" 
-                    className="w-10 h-10 object-contain"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-black text-xl">A</span>
-                  </div>
-                )}
-                <div className="flex flex-col">
-                  <span className="text-lg font-black tracking-tighter leading-none text-white">UNA AVENTURA MÁS</span>
-                  <span className="text-[10px] font-bold text-emerald-400 tracking-widest uppercase">Costa Rica</span>
-                </div>
-              </Link>
-              <p className="text-stone-400 max-w-md mb-8 leading-relaxed">
-                {siteConfig?.companyDescription || "Somos tu puerta de entrada a las mejores aventuras en Costa Rica y el mundo. Experiencias auténticas, seguras y diseñadas para crear recuerdos inolvidables."}
-              </p>
-              <div className="flex space-x-4">
-                <a href={siteConfig?.facebookUrl || "https://facebook.com"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-stone-800 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors">
-                  <Facebook size={20} />
-                </a>
-                <a href={siteConfig?.instagramUrl || "https://instagram.com"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-stone-800 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors">
-                  <Instagram size={20} />
-                </a>
-                <a href={siteConfig?.tiktokUrl || "https://tiktok.com"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-stone-800 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors">
-                  <TikTokIcon />
-                </a>
+              <div>
+                <h4 className="text-lg font-bold mb-6">Enlaces Rápidos</h4>
+                <ul className="space-y-4">
+                  <li><Link to="/" className="text-stone-400 hover:text-emerald-400 transition-colors">Inicio</Link></li>
+                  <li><Link to="/tours" className="text-stone-400 hover:text-emerald-400 transition-colors">Tours Nacionales</Link></li>
+                  <li><Link to="/arma-tu-viaje" className="text-stone-400 hover:text-emerald-400 transition-colors">Arma tu Viaje</Link></li>
+                </ul>
               </div>
             </div>
             
-            <div>
-              <h4 className="text-lg font-bold mb-6">Contacto</h4>
-              <ul className="space-y-4">
-                <li className="flex items-start space-x-3 text-stone-400">
-                  <Phone size={18} className="text-emerald-500 mt-1 shrink-0" />
-                  <span>+{siteConfig?.whatsappNumber || "506 8888-8888"}</span>
-                </li>
-                <li className="flex items-start space-x-3 text-stone-400">
-                  <Mail size={18} className="text-emerald-500 mt-1 shrink-0" />
-                  <span>{siteConfig?.contactEmail || "info@unaaventuramas.cr"}</span>
-                </li>
-                <li className="flex items-start space-x-3 text-stone-400">
-                  <MapPin size={18} className="text-emerald-500 mt-1 shrink-0" />
-                  <span>San José, Costa Rica</span>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-lg font-bold mb-6">Enlaces Rápidos</h4>
-              <ul className="space-y-4">
-                <li><Link to="/" className="text-stone-400 hover:text-emerald-400 transition-colors">Inicio</Link></li>
-                <li><Link to="/tours" className="text-stone-400 hover:text-emerald-400 transition-colors">Tours Nacionales</Link></li>
-                <li><Link to="/tours" className="text-stone-400 hover:text-emerald-400 transition-colors">Tours Internacionales</Link></li>
-              </ul>
+            <div className="border-t border-stone-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-stone-500 text-sm">
+                © {new Date().getFullYear()} {siteConfig?.footerCopyright || "Una Aventura Más Costa Rica. Todos los derechos reservados."}
+              </p>
+              <div className="flex space-x-6 text-stone-500 text-sm">
+                <Link to="/privacidad" className="hover:text-emerald-400">Privacidad</Link>
+                <Link to="/terminos" className="hover:text-emerald-400">Términos</Link>
+              </div>
             </div>
           </div>
-          
-          <div className="border-t border-stone-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-stone-500 text-sm">
-              © {new Date().getFullYear()} {siteConfig?.footerCopyright || "Una Aventura Más Costa Rica. Todos los derechos reservados."}
-            </p>
-            <div className="flex space-x-6 text-stone-500 text-sm">
-              <Link to="/privacidad" className="hover:text-emerald-400">Privacidad</Link>
-              <Link to="/terminos" className="hover:text-emerald-400">Términos</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      )}
 
       <WhatsAppButton />
       

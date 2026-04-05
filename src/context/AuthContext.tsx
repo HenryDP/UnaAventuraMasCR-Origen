@@ -32,20 +32,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(currentUser);
       
       if (currentUser) {
+        // Check if user is admin
+        // For this demo, we check a hardcoded email or a field in Firestore
         const adminEmail = 'duranhenry1981@gmail.com';
-        
         if (currentUser.email === adminEmail) {
           setIsAdmin(true);
         } else if (db) {
-          const userDocRef = doc(db, 'users', currentUser.uid);
-          const userDoc = await getDoc(userDocRef);
-          
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            setIsAdmin(userData?.role === 'admin');
-          } else {
-            setIsAdmin(false);
-          }
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          setIsAdmin(userDoc.exists() && userDoc.data().role === 'admin');
         } else {
           setIsAdmin(false);
         }
