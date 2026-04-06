@@ -326,7 +326,7 @@ export default function ItineraryBuilder() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-8">
+      <div className="grow max-w-4xl w-full mx-auto p-4 sm:p-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
@@ -541,7 +541,7 @@ export default function ItineraryBuilder() {
                           <div className={`p-2 rounded-lg shrink-0 ${data.selectedTours.includes(t.id) ? 'bg-emerald-600 text-white' : 'bg-stone-100 text-stone-500'}`}>
                             <Compass size={20} />
                           </div>
-                          <div className="flex-grow">
+                          <div className="grow">
                             <div className="flex justify-between items-start">
                               <p className="font-bold text-stone-900 text-sm">{t.title}</p>
                               {data.selectedTours.includes(t.id) && <CheckCircle2 className="text-emerald-600" size={16} />}
