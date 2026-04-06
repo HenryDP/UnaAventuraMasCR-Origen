@@ -48,6 +48,12 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // Quotes: Public create, Admin read/update/delete
+    match /quotes/{quoteId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
     // User profiles
     match /users/{userId} {
       allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());

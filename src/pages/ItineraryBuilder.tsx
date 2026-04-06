@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Calendar, 
@@ -15,19 +15,34 @@ import {
   AlertCircle,
   Info,
   Camera,
-  Trees
+  Trees,
+  User,
+  Mail,
+  Phone,
+  Home as HomeIcon,
+  Save,
+  Loader2,
+  Compass
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import { ITINERARY_CONFIG } from '../constants/itineraryConfig';
+import { ITINERARY_CONFIG, ItineraryConfig } from '../constants/itineraryConfig';
+import { db } from '../lib/firebase';
+import { collection, addDoc, getDocs, query, where, serverTimestamp, doc, onSnapshot } from 'firebase/firestore';
+import { Tour } from '../components/TourCard';
+import { Link } from 'react-router-dom';
 
 // Types
 interface ItineraryData {
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
   startDate: string;
   endDate: string;
   peopleCount: number;
   vehicleId: string;
   selectedDestinations: string[];
+  selectedTours: string[];
   selectedExperiences: string[];
   includeHospedaje: boolean;
   includeAlimentacion: string[]; // ['desayuno', 'almuerzo', 'cena']
@@ -35,6 +50,7 @@ interface ItineraryData {
 }
 
 const STEPS = [
+  { id: 'contact', title: 'Contacto', icon: <User size={20} /> },
   { id: 'logistics', title: 'Logística', icon: <Car size={20} /> },
   { id: 'destinations', title: 'Destinos', icon: <MapPin size={20} /> },
   { id: 'services', title: 'Servicios', icon: <Hotel size={20} /> },
@@ -43,17 +59,58 @@ const STEPS = [
 
 export default function ItineraryBuilder() {
   const [currentStep, setCurrentStep] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [availableTours, setAvailableTours] = useState<Tour[]>([]);
+  const [config, setConfig] = useState<ItineraryConfig>(ITINERARY_CONFIG);
   const [data, setData] = useState<ItineraryData>({
+    customerName: '',
+    customerEmail: '',
+    customerPhone: '',
     startDate: '',
     endDate: '',
     peopleCount: 2,
     vehicleId: ITINERARY_CONFIG.vehiculos[0].id,
     selectedDestinations: [],
+    selectedTours: [],
     selectedExperiences: [],
     includeHospedaje: true,
     includeAlimentacion: ['desayuno', 'almuerzo'],
     includeGuia: true
   });
+
+  // Fetch Config
+  useEffect(() => {
+    if (!db) return;
+    const unsubscribe = onSnapshot(doc(db, "config", "itinerary"), (snapshot) => {
+      if (snapshot.exists()) {
+        const newConfig = snapshot.data() as ItineraryConfig;
+        setConfig(newConfig);
+        // Ensure vehicleId is valid if config changes
+        setData(prev => ({
+          ...prev,
+          vehicleId: newConfig.vehiculos.find(v => v.id === prev.vehicleId) ? prev.vehicleId : newConfig.vehiculos[0].id
+        }));
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Fetch Tours
+  useEffect(() => {
+    const fetchTours = async () => {
+      if (!db) return;
+      try {
+        const q = query(collection(db, "tours"), where("active", "==", true));
+        const snapshot = await getDocs(q);
+        const tours = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tour));
+        setAvailableTours(tours);
+      } catch (error) {
+        console.error("Error fetching tours:", error);
+      }
+    };
+    fetchTours();
+  }, []);
 
   // Calculations
   const calculations = useMemo(() => {
@@ -63,44 +120,51 @@ export default function ItineraryBuilder() {
     const nights = Math.max(0, days - 1);
 
     // 1. Transporte
-    const vehicle = ITINERARY_CONFIG.vehiculos.find(v => v.id === data.vehicleId)!;
+    const vehicle = config.vehiculos.find(v => v.id === data.vehicleId) || config.vehiculos[0];
     const totalKm = data.selectedDestinations.reduce((acc, destId) => {
-      const dest = ITINERARY_CONFIG.destinos.find(d => d.id === destId);
+      const dest = config.destinos.find(d => d.id === destId);
       return acc + (dest?.distanciaEstimadaKm || 0);
     }, 0);
     const extraPassengers = Math.max(0, data.peopleCount - 1);
     const transportCost = (vehicle.tarifaBase + (totalKm * vehicle.precioKm)) + (extraPassengers * vehicle.cargoExtraPasajero);
 
     // 2. Hospedaje
-    const roomsNeeded = Math.ceil(data.peopleCount / ITINERARY_CONFIG.hospedaje.maxPersonasPorHabitacion);
+    const roomsNeeded = Math.ceil(data.peopleCount / config.hospedaje.maxPersonasPorHabitacion);
     const hospedajeCost = data.includeHospedaje 
-      ? (nights * roomsNeeded * ITINERARY_CONFIG.hospedaje.costoNetoNocheHabitacion)
+      ? (nights * roomsNeeded * config.hospedaje.costoNetoNocheHabitacion)
       : 0;
 
-    // 3. Actividades (SINAC + Experiencias)
+    // 3. Actividades (SINAC + Tours + Experiencias)
     const sinacCost = data.selectedDestinations.reduce((acc, destId) => {
-      const dest = ITINERARY_CONFIG.destinos.find(d => d.id === destId);
+      const dest = config.destinos.find(d => d.id === destId);
       return acc + ((dest?.costoEntradaNeto || 0) * data.peopleCount);
     }, 0);
+
+    const toursCost = data.selectedTours.reduce((acc, tourId) => {
+      const tour = availableTours.find(t => t.id === tourId);
+      const price = tour?.price_national || tour?.price?.crc || 0;
+      return acc + (price * data.peopleCount);
+    }, 0);
+
     const experiencesCost = data.selectedExperiences.reduce((acc, expId) => {
-      const exp = ITINERARY_CONFIG.experiencias.find(e => e.id === expId);
+      const exp = config.experiencias.find(e => e.id === expId);
       return acc + ((exp?.costoOperativo || 0) * data.peopleCount);
     }, 0);
-    const totalActivitiesCost = sinacCost + experiencesCost;
+    const totalActivitiesCost = sinacCost + toursCost + experiencesCost;
 
     // 4. Alimentación
     const mealCostPerDay = data.includeAlimentacion.reduce((acc, mealId) => {
-      const meal = ITINERARY_CONFIG.alimentacion.find(m => m.id === mealId);
+      const meal = config.alimentacion.find(m => m.id === mealId);
       return acc + (meal?.costoNetoPlato || 0);
     }, 0);
     const totalAlimentacionCost = mealCostPerDay * data.peopleCount * days;
 
     // 5. Guía
-    const guiaCost = data.includeGuia ? (ITINERARY_CONFIG.guia.tarifaDiaria * days) : 0;
+    const guiaCost = data.includeGuia ? (config.guia.tarifaDiaria * days) : 0;
 
     // TOTALS
     const totalNetCost = transportCost + hospedajeCost + totalActivitiesCost + totalAlimentacionCost + guiaCost;
-    const markupAmount = totalNetCost * ITINERARY_CONFIG.margenGananciaAgencia;
+    const markupAmount = totalNetCost * config.margenGananciaAgencia;
     const finalPrice = totalNetCost + markupAmount;
 
     return {
@@ -120,7 +184,33 @@ export default function ItineraryBuilder() {
   }, [data]);
 
   const handleNext = () => {
+    if (currentStep === 0) {
+      if (!data.customerName || !data.customerEmail || !data.customerPhone) {
+        alert("Por favor completa tu información de contacto.");
+        return;
+      }
+    }
     if (currentStep < STEPS.length - 1) setCurrentStep(prev => prev + 1);
+  };
+
+  const saveQuoteToFirebase = async () => {
+    if (!db) return;
+    setIsSaving(true);
+    try {
+      await addDoc(collection(db, "quotes"), {
+        ...data,
+        totalPrice: calculations.finalPrice,
+        createdAt: serverTimestamp(),
+        status: 'pending'
+      });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 5000);
+    } catch (error) {
+      console.error("Error saving quote:", error);
+      alert("Hubo un error al guardar tu cotización. Por favor intenta de nuevo.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleBack = () => {
@@ -154,11 +244,15 @@ export default function ItineraryBuilder() {
 
     // Itinerary Table
     const tableData = [
+      ['Cliente', data.customerName],
+      ['Email', data.customerEmail],
+      ['Teléfono', data.customerPhone],
       ['Transporte', calculations.vehicleName],
       ['Hospedaje', data.includeHospedaje ? `${calculations.nights} noches (${calculations.roomsNeeded} hab.)` : 'No incluido'],
       ['Guía', data.includeGuia ? 'Guía profesional incluido' : 'No incluido'],
       ['Alimentación', data.includeAlimentacion.length > 0 ? data.includeAlimentacion.join(', ') : 'No incluida'],
-      ['Destinos', data.selectedDestinations.map(id => ITINERARY_CONFIG.destinos.find(d => d.id === id)?.nombre).join(', ')]
+      ['Destinos', data.selectedDestinations.map(id => config.destinos.find(d => d.id === id)?.nombre).join(', ')],
+      ['Tours Seleccionados', data.selectedTours.map(id => availableTours.find(t => t.id === id)?.title).join(', ')]
     ];
 
     (doc as any).autoTable({
@@ -208,9 +302,14 @@ export default function ItineraryBuilder() {
       {/* Immersive Header */}
       <div className="bg-emerald-600 text-white p-6 shadow-lg">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-black tracking-tighter uppercase">Constructor de Aventuras</h1>
-            <p className="text-emerald-100 text-xs font-medium">Diseña tu viaje perfecto por Costa Rica</p>
+          <div className="flex items-center gap-4">
+            <Link to="/" className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all" title="Volver al Inicio">
+              <HomeIcon size={20} />
+            </Link>
+            <div>
+              <h1 className="text-2xl font-black tracking-tighter uppercase">Constructor de Aventuras</h1>
+              <p className="text-emerald-100 text-xs font-medium">Diseña tu viaje perfecto por Costa Rica</p>
+            </div>
           </div>
           <div className="hidden sm:flex items-center gap-4">
             {STEPS.map((step, idx) => (
@@ -236,8 +335,68 @@ export default function ItineraryBuilder() {
             exit={{ opacity: 0, x: -20 }}
             className="bg-white rounded-3xl shadow-xl border border-stone-100 overflow-hidden"
           >
-            {/* STEP A: LOGISTICS */}
+            {/* STEP 0: CONTACT */}
             {currentStep === 0 && (
+              <div className="p-6 sm:p-10 space-y-8">
+                <div className="flex items-center gap-4 border-b border-stone-100 pb-6">
+                  <div className="bg-emerald-100 p-3 rounded-2xl text-emerald-600">
+                    <User size={32} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-stone-900">Paso 1: Información de Contacto</h2>
+                    <p className="text-stone-500 text-sm">Necesitamos estos datos para enviarte tu cotización personalizada.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="block text-xs font-black text-stone-400 uppercase tracking-widest">Nombre Completo</label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={16} />
+                      <input 
+                        type="text" 
+                        placeholder="Ej: Juan Pérez"
+                        value={data.customerName}
+                        onChange={e => setData({...data, customerName: e.target.value})}
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="block text-xs font-black text-stone-400 uppercase tracking-widest">Correo Electrónico</label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={16} />
+                        <input 
+                          type="email" 
+                          placeholder="ejemplo@correo.com"
+                          value={data.customerEmail}
+                          onChange={e => setData({...data, customerEmail: e.target.value})}
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" 
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-xs font-black text-stone-400 uppercase tracking-widest">Teléfono / WhatsApp</label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={16} />
+                        <input 
+                          type="tel" 
+                          placeholder="+506 8888-8888"
+                          value={data.customerPhone}
+                          onChange={e => setData({...data, customerPhone: e.target.value})}
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP A: LOGISTICS */}
+            {currentStep === 1 && (
               <div className="p-6 sm:p-10 space-y-8">
                 <div className="flex items-center gap-4 border-b border-stone-100 pb-6">
                   <div className="bg-emerald-100 p-3 rounded-2xl text-emerald-600">
@@ -292,7 +451,7 @@ export default function ItineraryBuilder() {
                 <div className="space-y-4">
                   <label className="block text-xs font-black text-stone-400 uppercase tracking-widest">Selecciona tu Vehículo</label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {ITINERARY_CONFIG.vehiculos.map(v => (
+                    {config.vehiculos.map(v => (
                       <button
                         key={v.id}
                         onClick={() => setData({...data, vehicleId: v.id})}
@@ -313,15 +472,15 @@ export default function ItineraryBuilder() {
             )}
 
             {/* STEP B: DESTINATIONS */}
-            {currentStep === 1 && (
+            {currentStep === 2 && (
               <div className="p-6 sm:p-10 space-y-8">
                 <div className="flex items-center gap-4 border-b border-stone-100 pb-6">
                   <div className="bg-emerald-100 p-3 rounded-2xl text-emerald-600">
                     <MapPin size={32} />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-stone-900">Paso B: Destinos y Experiencias</h2>
-                    <p className="text-stone-500 text-sm">Elige los Parques Nacionales y actividades especiales.</p>
+                    <h2 className="text-xl font-bold text-stone-900">Paso 3: Destinos y Tours</h2>
+                    <p className="text-stone-500 text-sm">Elige los Parques Nacionales y tours que deseas incluir.</p>
                   </div>
                 </div>
 
@@ -335,9 +494,9 @@ export default function ItineraryBuilder() {
                 </div>
 
                 <div className="space-y-4">
-                  <label className="block text-xs font-black text-stone-400 uppercase tracking-widest">Parques Nacionales</label>
+                  <label className="block text-xs font-black text-stone-400 uppercase tracking-widest">Parques Nacionales (Destinos)</label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {ITINERARY_CONFIG.destinos.map(d => (
+                    {config.destinos.map(d => (
                       <button
                         key={d.id}
                         onClick={() => {
@@ -361,10 +520,47 @@ export default function ItineraryBuilder() {
                   </div>
                 </div>
 
+                {availableTours.length > 0 && (
+                  <div className="space-y-4">
+                    <label className="block text-xs font-black text-stone-400 uppercase tracking-widest">Tours Disponibles</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {availableTours.map(t => (
+                        <button
+                          key={t.id}
+                          onClick={() => {
+                            const exists = data.selectedTours.includes(t.id);
+                            setData({
+                              ...data,
+                              selectedTours: exists 
+                                ? data.selectedTours.filter(id => id !== t.id)
+                                : [...data.selectedTours, t.id]
+                            });
+                          }}
+                          className={`p-4 rounded-2xl border-2 transition-all text-left flex items-start gap-4 ${data.selectedTours.includes(t.id) ? 'border-emerald-600 bg-emerald-50' : 'border-stone-100 hover:border-emerald-200'}`}
+                        >
+                          <div className={`p-2 rounded-lg shrink-0 ${data.selectedTours.includes(t.id) ? 'bg-emerald-600 text-white' : 'bg-stone-100 text-stone-500'}`}>
+                            <Compass size={20} />
+                          </div>
+                          <div className="flex-grow">
+                            <div className="flex justify-between items-start">
+                              <p className="font-bold text-stone-900 text-sm">{t.title}</p>
+                              {data.selectedTours.includes(t.id) && <CheckCircle2 className="text-emerald-600" size={16} />}
+                            </div>
+                            <p className="text-[10px] text-stone-500 line-clamp-1">{t.location}</p>
+                            <p className="text-xs font-black text-emerald-700 mt-1">
+                              ₡{(t.price_national || t.price?.crc || 0).toLocaleString()}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <label className="block text-xs font-black text-stone-400 uppercase tracking-widest">Experiencias Propias</label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {ITINERARY_CONFIG.experiencias.map(e => (
+                    {config.experiencias.map(e => (
                       <button
                         key={e.id}
                         onClick={() => {
@@ -390,7 +586,7 @@ export default function ItineraryBuilder() {
             )}
 
             {/* STEP C: SERVICES */}
-            {currentStep === 2 && (
+            {currentStep === 3 && (
               <div className="p-6 sm:p-10 space-y-8">
                 <div className="flex items-center gap-4 border-b border-stone-100 pb-6">
                   <div className="bg-emerald-100 p-3 rounded-2xl text-emerald-600">
@@ -444,7 +640,7 @@ export default function ItineraryBuilder() {
                   <div className="space-y-4">
                     <label className="block text-xs font-black text-stone-400 uppercase tracking-widest">Alimentación Incluida</label>
                     <div className="space-y-3">
-                      {ITINERARY_CONFIG.alimentacion.map(meal => (
+                      {config.alimentacion.map(meal => (
                         <button
                           key={meal.id}
                           onClick={() => {
@@ -472,14 +668,14 @@ export default function ItineraryBuilder() {
             )}
 
             {/* STEP D: SUMMARY */}
-            {currentStep === 3 && (
+            {currentStep === 4 && (
               <div className="p-6 sm:p-10 space-y-8">
                 <div className="flex items-center gap-4 border-b border-stone-100 pb-6">
                   <div className="bg-emerald-100 p-3 rounded-2xl text-emerald-600">
                     <CheckCircle2 size={32} />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-stone-900">Paso D: Resumen y Cotización</h2>
+                    <h2 className="text-xl font-bold text-stone-900">Paso 5: Resumen y Cotización</h2>
                     <p className="text-stone-500 text-sm">Revisa los detalles finales antes de generar los documentos.</p>
                   </div>
                 </div>
@@ -489,6 +685,10 @@ export default function ItineraryBuilder() {
                     <div className="bg-stone-50 p-6 rounded-3xl space-y-4">
                       <h3 className="text-xs font-black text-stone-400 uppercase tracking-widest">Detalles del Itinerario</h3>
                       <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-stone-500">Cliente</span>
+                          <span className="font-bold text-stone-900">{data.customerName}</span>
+                        </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-stone-500">Periodo</span>
                           <span className="font-bold text-stone-900">{data.startDate} al {data.endDate}</span>
@@ -501,10 +701,6 @@ export default function ItineraryBuilder() {
                           <span className="text-stone-500">Transporte</span>
                           <span className="font-bold text-stone-900">{calculations.vehicleName}</span>
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-stone-500">Hospedaje</span>
-                          <span className="font-bold text-stone-900">{data.includeHospedaje ? `${calculations.roomsNeeded} habitaciones` : 'No incluido'}</span>
-                        </div>
                       </div>
                     </div>
 
@@ -516,6 +712,15 @@ export default function ItineraryBuilder() {
                       </div>
                       <p className="text-[10px] text-emerald-600 mt-2 font-bold uppercase tracking-widest">Precio final para el cliente</p>
                     </div>
+
+                    <button 
+                      onClick={saveQuoteToFirebase}
+                      disabled={isSaving || saveSuccess}
+                      className={`w-full flex items-center justify-center gap-3 p-4 rounded-2xl font-bold transition-all shadow-lg ${saveSuccess ? 'bg-green-100 text-green-700' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
+                    >
+                      {isSaving ? <Loader2 className="animate-spin" size={20} /> : saveSuccess ? <CheckCircle2 size={20} /> : <Save size={20} />}
+                      {saveSuccess ? 'Cotización Guardada' : 'Guardar y Solicitar Cotización'}
+                    </button>
                   </div>
 
                   <div className="space-y-4">
