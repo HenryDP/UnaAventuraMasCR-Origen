@@ -141,7 +141,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden fixed inset-0 z-1001 bg-white animate-in slide-in-from-right duration-300">
+            <div className="md:hidden fixed inset-0 z-1010 bg-white animate-in slide-in-from-right duration-300">
               <div className="flex flex-col h-full">
                 <div className="flex justify-between items-center p-6 border-b border-stone-100">
                   <Link to="/" className="flex items-center space-x-2" onClick={() => setIsMenuOpen(false)}>
