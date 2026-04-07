@@ -7,6 +7,7 @@ import { db } from '../lib/firebase';
 import { SiteConfig } from './TourCard';
 import { useAuth } from '../context/AuthContext';
 import ConfigModal from './ConfigModal';
+import AuthModal from './AuthModal';
 import { Edit2 } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'motion/react';
@@ -21,7 +22,8 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [siteConfig, setSiteConfig] = useState<SiteConfig | null>(null);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
-  const { user, isAdmin, login, logout } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { user, isAdmin, logout } = useAuth();
   const location = useLocation();
   const isImmersivePage = location.pathname === '/arma-tu-viaje';
 
@@ -69,7 +71,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
     <div className="min-h-screen flex flex-col font-sans text-stone-900">
       {/* Admin Bar */}
       {isAdmin && (
-        <div className="bg-emerald-900 text-white px-4 py-2 flex justify-between items-center text-xs font-bold sticky top-0 z-60 shadow-xl">
+        <div className="bg-emerald-900 text-white px-4 py-2 flex justify-between items-center text-xs font-bold sticky top-0 z-[60] shadow-xl">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             <span>MODO ADMINISTRADOR ACTIVO</span>
@@ -86,7 +88,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
 
       {/* Navigation */}
       {!isImmersivePage && (
-        <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-36px' : 'top-0'} ${isMenuOpen ? 'z-1000' : 'z-50'} border-b border-stone-100`}>
+        <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-[36px]' : 'top-0'} ${isMenuOpen ? 'z-[1000]' : 'z-50'} border-b border-stone-100`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-20">
               <div className="flex items-center">
@@ -100,12 +102,12 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <div className="w-12 h-12 bg-linear-to-br from-emerald-500 to-emerald-700 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200/50 transform transition-transform group-hover:rotate-12">
+                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200/50 transform transition-transform group-hover:rotate-12">
                         <Compass className="text-white w-7 h-7" />
                       </div>
                     )}
                     <div className="flex flex-col">
-                      <span className="text-xl font-black tracking-tighter leading-none uppercase bg-clip-text text-transparent bg-linear-to-r from-stone-900 to-stone-600">
+                      <span className="text-xl font-black tracking-tighter leading-none uppercase bg-clip-text text-transparent bg-gradient-to-r from-stone-900 to-stone-600">
                         {siteConfig?.headerTitle || "UNA AVENTURA MÁS"}
                       </span>
                       <span className="text-[11px] font-black text-emerald-600 tracking-[0.2em] uppercase mt-0.5">
@@ -132,7 +134,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                           <UserIcon size={14} />
                         </div>
                       )}
-                      <span className="text-xs font-bold text-stone-700 truncate max-w-100px">{user.displayName?.split(' ')[0]}</span>
+                      <span className="text-xs font-bold text-stone-700 truncate max-w-[100px]">{user.displayName?.split(' ')[0]}</span>
                     </div>
                     <button 
                       onClick={logout}
@@ -144,7 +146,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                   </div>
                 ) : (
                   <button 
-                    onClick={login}
+                    onClick={() => setIsAuthModalOpen(true)}
                     className="flex items-center space-x-2 text-stone-600 hover:text-emerald-600 transition-colors font-bold text-sm"
                   >
                     <UserIcon size={18} />
@@ -175,10 +177,17 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
           </div>
 
           {/* Mobile Menu */}
-          {isMenuOpen && (
-            <div className="md:hidden fixed inset-0 z-1001 bg-white animate-in slide-in-from-right duration-300">
-              <div className="flex flex-col h-full">
-                <div className="flex justify-between items-center p-6 border-b border-stone-100">
+          <AnimatePresence>
+            {isMenuOpen && (
+              <motion.div 
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="md:hidden fixed inset-0 z-[2000] bg-white flex flex-col h-full w-full shadow-2xl overflow-hidden"
+              >
+                {/* Header of Mobile Menu */}
+                <div className="flex justify-between items-center p-6 border-b border-stone-100 bg-white sticky top-0 z-20">
                   <Link to="/" className="flex items-center space-x-3" onClick={() => setIsMenuOpen(false)}>
                     {siteConfig?.logoUrl ? (
                       <img 
@@ -201,14 +210,15 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                       </span>
                     </div>
                   </Link>
-                  <button onClick={() => setIsMenuOpen(false)} className="text-stone-600 p-2">
+                  <button onClick={() => setIsMenuOpen(false)} className="text-stone-600 p-2 active:scale-90 transition-transform">
                     <X size={28} />
                   </button>
                 </div>
                 
-                <div className="grow overflow-y-auto p-6 space-y-4">
+                {/* Content of Mobile Menu */}
+                <div className="flex-grow overflow-y-auto p-6 space-y-4 bg-white relative z-10">
                   {user && (
-                    <div className="flex items-center space-x-4 p-4 bg-stone-50 rounded-2xl mb-4">
+                    <div className="flex items-center space-x-4 p-4 bg-stone-50 rounded-2xl mb-4 border border-stone-100">
                       {user.photoURL ? (
                         <img src={user.photoURL} alt={user.displayName || ''} className="w-12 h-12 rounded-full border-2 border-white shadow-sm" />
                       ) : (
@@ -225,59 +235,66 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
 
                   {!user && (
                     <button 
-                      onClick={login}
-                      className="flex items-center justify-center gap-3 w-full bg-stone-100 text-stone-900 px-6 py-4 rounded-2xl text-lg font-black active:scale-95 transition-all mb-4"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        setIsAuthModalOpen(true);
+                      }}
+                      className="flex items-center justify-center gap-3 w-full bg-stone-100 text-stone-900 px-6 py-4 rounded-2xl text-lg font-black active:scale-95 transition-all mb-4 border border-stone-200"
                     >
                       <UserIcon size={20} />
                       Ingresar / Registrarse
                     </button>
                   )}
-                  <Link 
-                    to="/" 
-                    className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Inicio
-                  </Link>
-                  <Link 
-                    to="/tours" 
-                    className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/tours' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Tours
-                  </Link>
-                  <Link 
-                    to="/arma-tu-viaje" 
-                    className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/arma-tu-viaje' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Arma tu Viaje
-                  </Link>
+                  
+                  <div className="space-y-2">
+                    <Link 
+                      to="/" 
+                      className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Inicio
+                    </Link>
+                    <Link 
+                      to="/tours" 
+                      className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/tours' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Tours
+                    </Link>
+                    <Link 
+                      to="/arma-tu-viaje" 
+                      className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/arma-tu-viaje' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Arma tu Viaje
+                    </Link>
+                  </div>
                 </div>
 
-                <div className="p-6 border-t border-stone-100 space-y-4">
+                {/* Footer of Mobile Menu */}
+                <div className="p-6 border-t border-stone-100 space-y-4 bg-white sticky bottom-0 z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
                   <a 
                     href={whatsappLink}
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-3 w-full bg-emerald-600 text-white px-6 py-4 rounded-2xl text-lg font-black shadow-xl active:scale-95 transition-all"
+                    className="flex items-center justify-center gap-3 w-full bg-emerald-600 text-white px-6 py-4 rounded-2xl text-lg font-black shadow-xl shadow-emerald-100 active:scale-95 transition-all"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <Phone size={20} />
                     Reservar Ahora
                   </a>
-                  <div className="flex justify-center space-x-6 pt-4">
-                    <a href={siteConfig?.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-emerald-600"><Facebook size={24} /></a>
-                    <a href={siteConfig?.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-emerald-600"><Instagram size={24} /></a>
+                  <div className="flex justify-center space-x-8 pt-2">
+                    <a href={siteConfig?.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-emerald-600 transition-colors"><Facebook size={28} /></a>
+                    <a href={siteConfig?.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-emerald-600 transition-colors"><Instagram size={28} /></a>
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </nav>
       )}
 
-      <main className="grow relative overflow-x-hidden">
+      <main className="flex-grow relative overflow-x-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -386,6 +403,11 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
           onClose={() => setIsConfigModalOpen(false)} 
         />
       )}
+
+      <AuthModal 
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
     </div>
   );
 }

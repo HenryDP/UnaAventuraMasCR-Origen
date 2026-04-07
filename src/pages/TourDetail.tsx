@@ -10,6 +10,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import TourModal from '../components/TourModal';
 import ShareModal from '../components/ShareModal';
 import ReviewSection from '../components/ReviewSection';
+import AuthModal from '../components/AuthModal';
 
 export default function TourDetail() {
   const { id } = useParams<{ id: string }>();
@@ -19,7 +20,8 @@ export default function TourDetail() {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const { user, isAdmin, login } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { user, isAdmin } = useAuth();
   const { setMessage, resetMessage } = useWhatsApp();
 
   useEffect(() => {
@@ -84,9 +86,7 @@ export default function TourDetail() {
 
   const handlePurchase = async (type: 'full' | 'partial') => {
     if (!user) {
-      if (window.confirm('Para realizar una compra o reserva, primero debes ingresar con tu cuenta. ¿Deseas ingresar ahora?')) {
-        await login();
-      }
+      setIsAuthModalOpen(true);
       return;
     }
 
@@ -394,6 +394,11 @@ export default function TourDetail() {
         url={`${window.location.origin}/tours/${tour.id}`}
         title={tour.title}
         description={tour.description}
+      />
+
+      <AuthModal 
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
       />
     </div>
   );
