@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Instagram, Facebook, Phone, Mail, MapPin, Menu, X } from 'lucide-react';
+import { Instagram, Facebook, Phone, Mail, MapPin, Menu, X, Compass } from 'lucide-react';
 import WhatsAppButton from './WhatsAppButton';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -69,7 +69,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
     <div className="min-h-screen flex flex-col font-sans text-stone-900">
       {/* Admin Bar */}
       {isAdmin && (
-        <div className="bg-emerald-900 text-white px-4 py-2 flex justify-between items-center text-xs font-bold sticky top-0 z-60 shadow-xl">
+        <div className="bg-emerald-900 text-white px-4 py-2 flex justify-between items-center text-xs font-bold sticky top-0 z-[60] shadow-xl">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             <span>MODO ADMINISTRADOR ACTIVO</span>
@@ -86,7 +86,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
 
       {/* Navigation */}
       {!isImmersivePage && (
-        <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-36px' : 'top-0'} ${isMenuOpen ? 'z-1000' : 'z-50'} border-b border-stone-100`}>
+        <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-[36px]' : 'top-0'} ${isMenuOpen ? 'z-[1000]' : 'z-50'} border-b border-stone-100`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-20">
               <div className="flex items-center">
@@ -96,17 +96,21 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                       <img 
                         src={siteConfig.logoUrl} 
                         alt="Logo" 
-                        className="w-10 h-10 object-contain"
+                        className="w-12 h-12 object-contain drop-shadow-sm"
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-black text-xl">A</span>
+                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200/50 transform transition-transform group-hover:rotate-12">
+                        <Compass className="text-white w-7 h-7" />
                       </div>
                     )}
                     <div className="flex flex-col">
-                      <span className="text-lg font-black tracking-tighter leading-none uppercase">{siteConfig?.headerTitle || "UNA AVENTURA MÁS"}</span>
-                      <span className="text-[10px] font-bold text-emerald-600 tracking-widest uppercase">{siteConfig?.headerSubtitle || "Costa Rica"}</span>
+                      <span className="text-xl font-black tracking-tighter leading-none uppercase bg-clip-text text-transparent bg-gradient-to-r from-stone-900 to-stone-600">
+                        {siteConfig?.headerTitle || "UNA AVENTURA MÁS"}
+                      </span>
+                      <span className="text-[11px] font-black text-emerald-600 tracking-[0.2em] uppercase mt-0.5">
+                        {siteConfig?.headerSubtitle || "Costa Rica"}
+                      </span>
                     </div>
                   </Link>
                 </div>
@@ -141,30 +145,37 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden fixed inset-0 z-1010 bg-white animate-in slide-in-from-right duration-300">
+            <div className="md:hidden fixed inset-0 z-[1001] bg-white animate-in slide-in-from-right duration-300">
               <div className="flex flex-col h-full">
                 <div className="flex justify-between items-center p-6 border-b border-stone-100">
-                  <Link to="/" className="flex items-center space-x-2" onClick={() => setIsMenuOpen(false)}>
+                  <Link to="/" className="flex items-center space-x-3" onClick={() => setIsMenuOpen(false)}>
                     {siteConfig?.logoUrl ? (
                       <img 
                         src={siteConfig.logoUrl} 
                         alt="Logo" 
-                        className="w-8 h-8 object-contain"
+                        className="w-10 h-10 object-contain"
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-black text-lg">A</span>
+                      <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-100">
+                        <Compass className="text-white w-6 h-6" />
                       </div>
                     )}
-                    <span className="text-sm font-black tracking-tighter uppercase">{siteConfig?.headerTitle || "UNA AVENTURA MÁS"}</span>
+                    <div className="flex flex-col">
+                      <span className="text-base font-black tracking-tighter uppercase leading-none">
+                        {siteConfig?.headerTitle || "UNA AVENTURA MÁS"}
+                      </span>
+                      <span className="text-[9px] font-black text-emerald-600 tracking-widest uppercase mt-0.5">
+                        {siteConfig?.headerSubtitle || "Costa Rica"}
+                      </span>
+                    </div>
                   </Link>
                   <button onClick={() => setIsMenuOpen(false)} className="text-stone-600 p-2">
                     <X size={28} />
                   </button>
                 </div>
                 
-                <div className="grow overflow-y-auto p-6 space-y-4">
+                <div className="flex-grow overflow-y-auto p-6 space-y-4">
                   <Link 
                     to="/" 
                     className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
@@ -210,7 +221,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
         </nav>
       )}
 
-      <main className="grow relative overflow-x-hidden">
+      <main className="flex-grow relative overflow-x-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -231,22 +242,26 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
               <div className="col-span-1 md:col-span-2">
-                <Link to="/" className="flex items-center space-x-2 mb-6">
+                <Link to="/" className="flex items-center space-x-3 mb-8 group">
                   {siteConfig?.logoUrl ? (
                     <img 
                       src={siteConfig.logoUrl} 
                       alt="Logo" 
-                      className="w-10 h-10 object-contain"
+                      className="w-12 h-12 object-contain"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
-                      <span className="text-white font-black text-xl">A</span>
+                    <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-900/20 group-hover:rotate-12 transition-transform">
+                      <Compass className="text-white w-7 h-7" />
                     </div>
                   )}
                   <div className="flex flex-col">
-                    <span className="text-lg font-black tracking-tighter leading-none text-white">UNA AVENTURA MÁS</span>
-                    <span className="text-[10px] font-bold text-emerald-400 tracking-widest uppercase">Costa Rica</span>
+                    <span className="text-xl font-black tracking-tighter leading-none text-white uppercase">
+                      {siteConfig?.headerTitle || "UNA AVENTURA MÁS"}
+                    </span>
+                    <span className="text-[11px] font-black text-emerald-400 tracking-[0.2em] uppercase mt-1">
+                      {siteConfig?.headerSubtitle || "Costa Rica"}
+                    </span>
                   </div>
                 </Link>
                 <p className="text-stone-400 max-w-md mb-8 leading-relaxed">
