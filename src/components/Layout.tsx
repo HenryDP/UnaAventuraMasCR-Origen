@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Instagram, Facebook, Phone, Mail, MapPin, Menu, X, Compass } from 'lucide-react';
+import { Instagram, Facebook, Phone, Mail, MapPin, Menu, X, Compass, User as UserIcon, LogOut } from 'lucide-react';
 import WhatsAppButton from './WhatsAppButton';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -21,7 +21,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [siteConfig, setSiteConfig] = useState<SiteConfig | null>(null);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
-  const { isAdmin } = useAuth();
+  const { user, isAdmin, login, logout } = useAuth();
   const location = useLocation();
   const isImmersivePage = location.pathname === '/arma-tu-viaje';
 
@@ -69,7 +69,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
     <div className="min-h-screen flex flex-col font-sans text-stone-900">
       {/* Admin Bar */}
       {isAdmin && (
-        <div className="bg-emerald-900 text-white px-4 py-2 flex justify-between items-center text-xs font-bold sticky top-0 z-[60] shadow-xl">
+        <div className="bg-emerald-900 text-white px-4 py-2 flex justify-between items-center text-xs font-bold sticky top-0 z-60 shadow-xl">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             <span>MODO ADMINISTRADOR ACTIVO</span>
@@ -86,7 +86,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
 
       {/* Navigation */}
       {!isImmersivePage && (
-        <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-[36px]' : 'top-0'} ${isMenuOpen ? 'z-[1000]' : 'z-50'} border-b border-stone-100`}>
+        <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-36px' : 'top-0'} ${isMenuOpen ? 'z-1000' : 'z-50'} border-b border-stone-100`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-20">
               <div className="flex items-center">
@@ -100,12 +100,12 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200/50 transform transition-transform group-hover:rotate-12">
+                      <div className="w-12 h-12 bg-linear-to-br from-emerald-500 to-emerald-700 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200/50 transform transition-transform group-hover:rotate-12">
                         <Compass className="text-white w-7 h-7" />
                       </div>
                     )}
                     <div className="flex flex-col">
-                      <span className="text-xl font-black tracking-tighter leading-none uppercase bg-clip-text text-transparent bg-gradient-to-r from-stone-900 to-stone-600">
+                      <span className="text-xl font-black tracking-tighter leading-none uppercase bg-clip-text text-transparent bg-linear-to-r from-stone-900 to-stone-600">
                         {siteConfig?.headerTitle || "UNA AVENTURA MÁS"}
                       </span>
                       <span className="text-[11px] font-black text-emerald-600 tracking-[0.2em] uppercase mt-0.5">
@@ -121,6 +121,37 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                 <Link to="/" className={`text-sm font-bold transition-colors ${location.pathname === '/' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}`}>Inicio</Link>
                 <Link to="/tours" className={`text-sm font-bold transition-colors ${location.pathname === '/tours' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}`}>Tours</Link>
                 <Link to="/arma-tu-viaje" className={`text-sm font-bold transition-colors ${location.pathname === '/arma-tu-viaje' ? 'text-emerald-600' : 'text-stone-600 hover:text-emerald-600'}`}>Arma tu Viaje</Link>
+                
+                {user ? (
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2 bg-stone-50 px-3 py-1.5 rounded-full border border-stone-100">
+                      {user.photoURL ? (
+                        <img src={user.photoURL} alt={user.displayName || ''} className="w-6 h-6 rounded-full" />
+                      ) : (
+                        <div className="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
+                          <UserIcon size={14} />
+                        </div>
+                      )}
+                      <span className="text-xs font-bold text-stone-700 truncate max-w-100px">{user.displayName?.split(' ')[0]}</span>
+                    </div>
+                    <button 
+                      onClick={logout}
+                      className="text-stone-400 hover:text-red-500 transition-colors"
+                      title="Cerrar Sesión"
+                    >
+                      <LogOut size={18} />
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={login}
+                    className="flex items-center space-x-2 text-stone-600 hover:text-emerald-600 transition-colors font-bold text-sm"
+                  >
+                    <UserIcon size={18} />
+                    <span>Ingresar</span>
+                  </button>
+                )}
+
                 <a 
                   href={whatsappLink}
                   target="_blank" 
@@ -145,7 +176,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden fixed inset-0 z-[1001] bg-white animate-in slide-in-from-right duration-300">
+            <div className="md:hidden fixed inset-0 z-1001 bg-white animate-in slide-in-from-right duration-300">
               <div className="flex flex-col h-full">
                 <div className="flex justify-between items-center p-6 border-b border-stone-100">
                   <Link to="/" className="flex items-center space-x-3" onClick={() => setIsMenuOpen(false)}>
@@ -175,7 +206,32 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                   </button>
                 </div>
                 
-                <div className="flex-grow overflow-y-auto p-6 space-y-4">
+                <div className="grow overflow-y-auto p-6 space-y-4">
+                  {user && (
+                    <div className="flex items-center space-x-4 p-4 bg-stone-50 rounded-2xl mb-4">
+                      {user.photoURL ? (
+                        <img src={user.photoURL} alt={user.displayName || ''} className="w-12 h-12 rounded-full border-2 border-white shadow-sm" />
+                      ) : (
+                        <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
+                          <UserIcon size={24} />
+                        </div>
+                      )}
+                      <div className="flex flex-col">
+                        <span className="font-black text-stone-900">{user.displayName}</span>
+                        <button onClick={logout} className="text-xs font-bold text-red-500 text-left uppercase tracking-widest mt-1">Cerrar Sesión</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {!user && (
+                    <button 
+                      onClick={login}
+                      className="flex items-center justify-center gap-3 w-full bg-stone-100 text-stone-900 px-6 py-4 rounded-2xl text-lg font-black active:scale-95 transition-all mb-4"
+                    >
+                      <UserIcon size={20} />
+                      Ingresar / Registrarse
+                    </button>
+                  )}
                   <Link 
                     to="/" 
                     className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
@@ -221,7 +277,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
         </nav>
       )}
 
-      <main className="flex-grow relative overflow-x-hidden">
+      <main className="grow relative overflow-x-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}

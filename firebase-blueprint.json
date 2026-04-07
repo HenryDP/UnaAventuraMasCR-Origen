@@ -38,6 +38,22 @@
         "adminResponse": { "type": "string", "description": "Official response from the agency." }
       },
       "required": ["userName", "comment", "rating", "status", "createdAt"]
+    },
+    "purchase_intent": {
+      "title": "Purchase Intent",
+      "description": "A record of a user clicking the buy/reserve button.",
+      "type": "object",
+      "properties": {
+        "tourId": { "type": "string" },
+        "tourTitle": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "type": { "type": "string", "enum": ["full", "partial"] },
+        "status": { "type": "string", "enum": ["pending", "contacted", "completed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["tourId", "userId", "userName", "type", "createdAt"]
     }
   },
   "firestore": {
@@ -48,6 +64,10 @@
     "/reviews/{reviewId}": {
       "schema": "review",
       "description": "Collection of customer reviews."
+    },
+    "/purchase_intents/{intentId}": {
+      "schema": "purchase_intent",
+      "description": "Tracking of user purchase interests and notifications."
     }
   }
 }

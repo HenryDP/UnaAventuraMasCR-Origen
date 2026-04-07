@@ -5,6 +5,8 @@ import { Tour, SiteConfig } from '../components/TourCard';
 import { MapPin, Clock, Calendar, ArrowLeft, CheckCircle, AlertCircle, Bus, CreditCard, ChevronLeft, ChevronRight, Edit2, Share2 } from 'lucide-react';
 import { useWhatsApp } from '../context/WhatsAppContext';
 import { useAuth } from '../context/AuthContext';
+import { db } from '../lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import TourModal from '../components/TourModal';
 import ShareModal from '../components/ShareModal';
 import ReviewSection from '../components/ReviewSection';
@@ -17,7 +19,7 @@ export default function TourDetail() {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const { isAdmin } = useAuth();
+  const { user, isAdmin, login } = useAuth();
   const { setMessage, resetMessage } = useWhatsApp();
 
   useEffect(() => {
@@ -78,6 +80,51 @@ export default function TourDetail() {
     if (tour.images && tour.images.length > 0) {
       setActiveImageIndex((prev) => (prev - 1 + tour.images.length) % tour.images.length);
     }
+  };
+
+  const handlePurchase = async (type: 'full' | 'partial') => {
+    if (!user) {
+      if (window.confirm('Para realizar una compra o reserva, primero debes ingresar con tu cuenta. ¿Deseas ingresar ahora?')) {
+        await login();
+      }
+      return;
+    }
+
+    const tourTitle = tour?.title || 'Tour';
+    const userName = user.displayName || 'Usuario';
+    const userEmail = user.email || '';
+    const purchaseType = type === 'full' ? 'Pago Completo' : 'Reserva (Pago Parcial)';
+    
+    const message = `¡Hola! Soy ${userName} (${userEmail}). Estoy interesado en realizar la compra de: *${tourTitle}* bajo la modalidad de *${purchaseType}*. ¿Me podrían ayudar con el seguimiento?`;
+    
+    // Primary number
+    const primaryNumber = "50687751482";
+    const secondaryNumber = "50664435508";
+    
+    // Log purchase intent in Firestore for admin tracking
+    if (db) {
+      try {
+        await addDoc(collection(db, 'purchase_intents'), {
+          tourId: tour?.id,
+          tourTitle,
+          userId: user.uid,
+          userName,
+          userEmail,
+          type,
+          status: 'pending',
+          createdAt: serverTimestamp()
+        });
+      } catch (e) {
+        console.error("Error logging purchase intent:", e);
+      }
+    }
+
+    // Open WhatsApp to primary number
+    const whatsappUrl = `https://wa.me/${primaryNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+    
+    // Inform user about the second contact if needed
+    alert(`¡Gracias ${userName}! Hemos registrado tu interés. Se ha abierto un chat con nuestro agente principal. También puedes contactar al segundo encargado al ${secondaryNumber} si lo deseas.`);
   };
 
   return (
@@ -297,32 +344,28 @@ export default function TourDetail() {
 
               <div className="space-y-4">
                 {tour.paymentLink && (
-                  <a 
-                    href={tour.paymentLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
+                  <button 
+                    onClick={() => handlePurchase('full')}
                     className="w-full flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-4 rounded-xl transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 duration-200"
                   >
                     <CreditCard className="mr-2" size={20} />
                     Comprar Tour (Pago Completo)
-                  </a>
+                  </button>
                 )}
                 
                 {tour.reserveLink && (
-                  <a 
-                    href={tour.reserveLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
+                  <button 
+                    onClick={() => handlePurchase('partial')}
                     className="w-full flex items-center justify-center bg-white border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 font-bold py-4 px-4 rounded-xl transition-all shadow-sm hover:shadow-md transform hover:-translate-y-0.5 duration-200"
                   >
                     <Calendar className="mr-2" size={20} />
                     Reservar Espacio (Pago Parcial)
-                  </a>
+                  </button>
                 )}
 
                 {!tour.paymentLink && !tour.reserveLink && (
                   <button 
-                    onClick={() => window.open(`https://wa.me/${siteConfig?.whatsappNumber || '50688888888'}?text=Hola! Me interesa el tour ${tour.title}`, '_blank')}
+                    onClick={() => handlePurchase('full')}
                     className="w-full flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-4 rounded-xl transition-all shadow-md hover:shadow-lg"
                   >
                     Consultar por WhatsApp
