@@ -24,6 +24,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { user, isAdmin, logout } = useAuth();
+  const [isFloatingMenuOpen, setIsFloatingMenuOpen] = useState(false);
   const location = useLocation();
   const isImmersivePage = location.pathname === '/arma-tu-viaje';
 
@@ -164,71 +165,58 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                 </a>
               </div>
 
-              {/* Mobile menu button */}
+              {/* Mobile menu button - Hidden in favor of Floating Menu */}
               <div className="md:hidden flex items-center">
-                <button
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="text-stone-600 hover:text-emerald-600 p-2"
-                >
-                  {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-                </button>
+                {/* We'll use the Floating Menu instead */}
               </div>
             </div>
           </div>
 
-          {/* Mobile Menu */}
-          <AnimatePresence>
-            {isMenuOpen && (
+          {/* Mobile Menu - Removed traditional version */}
+        </nav>
+      )}
+
+      {/* Floating Menu for Mobile */}
+      <div className="md:hidden">
+        <AnimatePresence>
+          {isFloatingMenuOpen && (
+            <>
+              {/* Backdrop */}
               <motion.div 
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="md:hidden fixed inset-0 z-[2000] bg-white flex flex-col h-full w-full shadow-2xl overflow-hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsFloatingMenuOpen(false)}
+                className="fixed inset-0 bg-stone-900/40 backdrop-blur-[2px] z-[5000]"
+              />
+              
+              {/* Compact Floating Menu Content */}
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0, y: 20, x: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0, x: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20, x: 20 }}
+                className="fixed bottom-24 right-6 w-64 bg-white/95 backdrop-blur-md rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] z-[5001] overflow-hidden border border-white/20"
               >
-                {/* Header of Mobile Menu */}
-                <div className="flex justify-between items-center p-6 border-b border-stone-100 bg-white sticky top-0 z-20">
-                  <Link to="/" className="flex items-center space-x-3" onClick={() => setIsMenuOpen(false)}>
-                    {siteConfig?.logoUrl ? (
-                      <img 
-                        src={siteConfig.logoUrl} 
-                        alt="Logo" 
-                        className="w-10 h-10 object-contain"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-100">
-                        <Compass className="text-white w-6 h-6" />
-                      </div>
-                    )}
-                    <div className="flex flex-col">
-                      <span className="text-base font-black tracking-tighter uppercase leading-none">
-                        {siteConfig?.headerTitle || "UNA AVENTURA MÁS"}
-                      </span>
-                      <span className="text-[9px] font-black text-emerald-600 tracking-widest uppercase mt-0.5">
-                        {siteConfig?.headerSubtitle || "Costa Rica"}
-                      </span>
-                    </div>
-                  </Link>
-                  <button onClick={() => setIsMenuOpen(false)} className="text-stone-600 p-2 active:scale-90 transition-transform">
-                    <X size={28} />
-                  </button>
-                </div>
-                
-                {/* Content of Mobile Menu */}
-                <div className="flex-grow overflow-y-auto p-6 space-y-4 bg-white relative z-10">
+                <div className="p-5 space-y-4">
+                  <div className="flex justify-between items-center border-b border-stone-100 pb-3">
+                    <span className="text-[10px] font-black text-emerald-600 tracking-[0.2em] uppercase">Explorar</span>
+                    <button onClick={() => setIsFloatingMenuOpen(false)} className="text-stone-400">
+                      <X size={16} />
+                    </button>
+                  </div>
+
                   {user && (
-                    <div className="flex items-center space-x-4 p-4 bg-stone-50 rounded-2xl mb-4 border border-stone-100">
+                    <div className="flex items-center space-x-3 p-2 bg-emerald-50/50 rounded-xl border border-emerald-100/50">
                       {user.photoURL ? (
-                        <img src={user.photoURL} alt={user.displayName || ''} className="w-12 h-12 rounded-full border-2 border-white shadow-sm" />
+                        <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full border border-white shadow-sm" />
                       ) : (
-                        <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
-                          <UserIcon size={24} />
+                        <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs font-bold">
+                          {user.displayName?.charAt(0) || <UserIcon size={14} />}
                         </div>
                       )}
-                      <div className="flex flex-col">
-                        <span className="font-black text-stone-900">{user.displayName}</span>
-                        <button onClick={logout} className="text-xs font-bold text-red-500 text-left uppercase tracking-widest mt-1">Cerrar Sesión</button>
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="font-bold text-stone-900 truncate text-xs">{user.displayName?.split(' ')[0]}</span>
+                        <button onClick={logout} className="text-[9px] font-black text-red-500 uppercase text-left">Salir</button>
                       </div>
                     </div>
                   )}
@@ -236,63 +224,71 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                   {!user && (
                     <button 
                       onClick={() => {
-                        setIsMenuOpen(false);
+                        setIsFloatingMenuOpen(false);
                         setIsAuthModalOpen(true);
                       }}
-                      className="flex items-center justify-center gap-3 w-full bg-stone-100 text-stone-900 px-6 py-4 rounded-2xl text-lg font-black active:scale-95 transition-all mb-4 border border-stone-200"
+                      className="flex items-center justify-center gap-2 w-full bg-emerald-600 text-white py-2.5 rounded-xl text-xs font-black shadow-lg shadow-emerald-100"
                     >
-                      <UserIcon size={20} />
-                      Ingresar / Registrarse
+                      <UserIcon size={14} />
+                      INGRESAR
                     </button>
                   )}
-                  
-                  <div className="space-y-2">
-                    <Link 
-                      to="/" 
-                      className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Inicio
-                    </Link>
-                    <Link 
-                      to="/tours" 
-                      className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/tours' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Tours
-                    </Link>
-                    <Link 
-                      to="/arma-tu-viaje" 
-                      className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/arma-tu-viaje' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Arma tu Viaje
-                    </Link>
-                  </div>
-                </div>
 
-                {/* Footer of Mobile Menu */}
-                <div className="p-6 border-t border-stone-100 space-y-4 bg-white sticky bottom-0 z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-                  <a 
-                    href={whatsappLink}
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-3 w-full bg-emerald-600 text-white px-6 py-4 rounded-2xl text-lg font-black shadow-xl shadow-emerald-100 active:scale-95 transition-all"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Phone size={20} />
-                    Reservar Ahora
-                  </a>
-                  <div className="flex justify-center space-x-8 pt-2">
-                    <a href={siteConfig?.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-emerald-600 transition-colors"><Facebook size={28} /></a>
-                    <a href={siteConfig?.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-emerald-600 transition-colors"><Instagram size={28} /></a>
+                  <div className="flex flex-col gap-1">
+                    {[
+                      { to: "/", label: "Inicio" },
+                      { to: "/tours", label: "Tours" },
+                      { to: "/arma-tu-viaje", label: "Arma tu Viaje" }
+                    ].map((item) => (
+                      <Link 
+                        key={item.to}
+                        to={item.to} 
+                        className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-colors ${location.pathname === item.to ? 'bg-emerald-50 text-emerald-600' : 'text-stone-600 hover:bg-stone-50'}`}
+                        onClick={() => setIsFloatingMenuOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+
+                  <div className="pt-1">
+                    <a 
+                      href={whatsappLink}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full bg-stone-900 text-white py-3 rounded-xl text-xs font-black active:scale-95 transition-transform"
+                    >
+                      <Phone size={14} />
+                      WHATSAPP
+                    </a>
                   </div>
                 </div>
               </motion.div>
-            )}
-          </AnimatePresence>
-        </nav>
-      )}
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Draggable Floating Button */}
+        <motion.div
+          drag
+          dragMomentum={false}
+          dragConstraints={{ 
+            left: -window.innerWidth + 80, 
+            right: 0, 
+            top: -window.innerHeight + 100, 
+            bottom: 0 
+          }}
+          className="fixed bottom-6 right-6 z-[6000]"
+        >
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsFloatingMenuOpen(!isFloatingMenuOpen)}
+            className="w-14 h-14 bg-emerald-600 text-white rounded-full shadow-[0_10px_30px_rgba(16,185,129,0.4)] flex items-center justify-center border-4 border-white active:bg-emerald-700 transition-colors"
+          >
+            {isFloatingMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </motion.button>
+        </motion.div>
+      </div>
 
       <main className="flex-grow relative overflow-x-hidden">
         <AnimatePresence mode="wait">
