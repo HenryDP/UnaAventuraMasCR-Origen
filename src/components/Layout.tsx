@@ -86,7 +86,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
 
       {/* Navigation */}
       {!isImmersivePage && (
-        <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-36px' : 'top-0'} z-50 border-b border-stone-100`}>
+        <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-36px' : 'top-0'} ${isMenuOpen ? 'z-1000' : 'z-50'} border-b border-stone-100`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-20">
               <div className="flex items-center">
@@ -141,7 +141,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden fixed inset-0 z-100 bg-white animate-in slide-in-from-right duration-300">
+            <div className="md:hidden fixed inset-0 z-1001 bg-white animate-in slide-in-from-right duration-300">
               <div className="flex flex-col h-full">
                 <div className="flex justify-between items-center p-6 border-b border-stone-100">
                   <Link to="/" className="flex items-center space-x-2" onClick={() => setIsMenuOpen(false)}>
