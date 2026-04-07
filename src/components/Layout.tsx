@@ -9,6 +9,8 @@ import { useAuth } from '../context/AuthContext';
 import ConfigModal from './ConfigModal';
 import { Edit2 } from 'lucide-react';
 
+import { motion, AnimatePresence } from 'motion/react';
+
 const TikTokIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
     <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.03 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
@@ -22,6 +24,23 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
   const { isAdmin } = useAuth();
   const location = useLocation();
   const isImmersivePage = location.pathname === '/arma-tu-viaje';
+
+  // Close menu on route change
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
+
+  // Lock body scroll when menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMenuOpen]);
 
   useEffect(() => {
     if (!db) return;
@@ -50,7 +69,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
     <div className="min-h-screen flex flex-col font-sans text-stone-900">
       {/* Admin Bar */}
       {isAdmin && (
-        <div className="bg-emerald-900 text-white px-4 py-2 flex justify-between items-center text-xs font-bold sticky top-0 z-[60] shadow-xl">
+        <div className="bg-emerald-900 text-white px-4 py-2 flex justify-between items-center text-xs font-bold sticky top-0 z-60 shadow-xl">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             <span>MODO ADMINISTRADOR ACTIVO</span>
@@ -67,7 +86,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
 
       {/* Navigation */}
       {!isImmersivePage && (
-        <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-[36px]' : 'top-0'} z-50 border-b border-stone-100`}>
+        <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-36px' : 'top-0'} z-50 border-b border-stone-100`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-20">
               <div className="flex items-center">
@@ -122,7 +141,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden fixed inset-0 z-[100] bg-white animate-in slide-in-from-right duration-300">
+            <div className="md:hidden fixed inset-0 z-100 bg-white animate-in slide-in-from-right duration-300">
               <div className="flex flex-col h-full">
                 <div className="flex justify-between items-center p-6 border-b border-stone-100">
                   <Link to="/" className="flex items-center space-x-2" onClick={() => setIsMenuOpen(false)}>
@@ -145,7 +164,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                   </button>
                 </div>
                 
-                <div className="flex-grow overflow-y-auto p-6 space-y-4">
+                <div className="grow overflow-y-auto p-6 space-y-4">
                   <Link 
                     to="/" 
                     className={`block px-6 py-4 text-xl font-black rounded-2xl transition-all ${location.pathname === '/' ? 'bg-emerald-50 text-emerald-600' : 'text-stone-900 hover:bg-stone-50'}`}
@@ -191,8 +210,19 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
         </nav>
       )}
 
-      <main className="flex-grow">
-        {children || <Outlet />}
+      <main className="grow relative overflow-x-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="w-full h-full"
+          >
+            {children || <Outlet />}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Footer */}

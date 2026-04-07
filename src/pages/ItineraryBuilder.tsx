@@ -300,15 +300,15 @@ export default function ItineraryBuilder() {
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col">
       {/* Immersive Header */}
-      <div className="bg-emerald-600 text-white p-6 shadow-lg">
+      <div className="bg-emerald-600 text-white p-4 sm:p-6 shadow-lg sticky top-0 z-40">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Link to="/" className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all" title="Volver al Inicio">
-              <HomeIcon size={20} />
+              <HomeIcon size={18} className="sm:w-5 sm:h-5" />
             </Link>
             <div>
-              <h1 className="text-2xl font-black tracking-tighter uppercase">Constructor de Aventuras</h1>
-              <p className="text-emerald-100 text-xs font-medium">Diseña tu viaje perfecto por Costa Rica</p>
+              <h1 className="text-lg sm:text-2xl font-black tracking-tighter uppercase leading-tight">Constructor de Aventuras</h1>
+              <p className="text-emerald-100 text-[10px] sm:text-xs font-medium">Diseña tu viaje perfecto</p>
             </div>
           </div>
           <div className="hidden sm:flex items-center gap-4">
@@ -322,11 +322,21 @@ export default function ItineraryBuilder() {
               </div>
             ))}
           </div>
+          {/* Mobile Progress Indicator */}
+          <div className="sm:hidden flex flex-col items-end">
+            <span className="text-[10px] font-black uppercase tracking-widest mb-1">Paso {currentStep + 1}/5</span>
+            <div className="w-20 h-1.5 bg-white/20 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-white transition-all duration-500" 
+                style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="grow max-w-4xl w-full mx-auto p-4 sm:p-8">
+      <div className="grow max-w-4xl w-full mx-auto p-3 sm:p-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
