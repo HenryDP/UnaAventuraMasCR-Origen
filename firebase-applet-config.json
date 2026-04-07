@@ -3,7 +3,7 @@
   "appId": "1:82072938954:web:b19abdedc9d0a2618f0733",
   "apiKey": "AIzaSyDcYfZAQX5VtN8HQKVh1d7_pgTPye2r49U",
   "authDomain": "una-aventura-mas-cr.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-f32e4d45-4bea-4d12-b9e4-797f322fd753",
+  "firestoreDatabaseId": "(default)",
   "storageBucket": "una-aventura-mas-cr.firebasestorage.app",
   "messagingSenderId": "82072938954",
   "measurementId": ""
