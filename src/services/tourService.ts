@@ -32,6 +32,8 @@ export interface Review {
   rating: number;
   createdAt: any;
   status: 'approved' | 'pending' | 'rejected';
+  adminResponse?: string;
+  respondedAt?: any;
 }
 
 export const tourService = {
@@ -265,6 +267,18 @@ export const tourService = {
     if (!db) throw new Error("Firebase not initialized");
     const docRef = doc(db, REVIEWS_COLLECTION, id);
     return await updateDoc(docRef, { status });
+  },
+
+  /**
+   * Add or update admin response to a review
+   */
+  updateReviewResponse: async (id: string, response: string) => {
+    if (!db) throw new Error("Firebase not initialized");
+    const docRef = doc(db, REVIEWS_COLLECTION, id);
+    return await updateDoc(docRef, { 
+      adminResponse: response,
+      respondedAt: serverTimestamp()
+    });
   },
 
   /**

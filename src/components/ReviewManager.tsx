@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Star, Trash2, CheckCircle, XCircle, Clock, User, Edit2, Save, X } from 'lucide-react';
+import { Star, Trash2, CheckCircle, XCircle, Clock, User, Edit2, Save, X, MessageSquare } from 'lucide-react';
 import { tourService, Review } from '../services/tourService';
 
 export default function ReviewManager() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [respondingId, setRespondingId] = useState<string | null>(null);
   const [editData, setEditData] = useState({ userName: '', comment: '', rating: 5 });
+  const [responseText, setResponseText] = useState('');
 
   useEffect(() => {
     const unsubscribe = tourService.subscribeToAllReviews((reviewsData) => {
@@ -21,6 +23,17 @@ export default function ReviewManager() {
       await tourService.updateReviewStatus(id, status);
     } catch (error) {
       console.error("Error updating review status:", error);
+    }
+  };
+
+  const saveResponse = async (id: string) => {
+    try {
+      await tourService.updateReviewResponse(id, responseText);
+      setRespondingId(null);
+      setResponseText('');
+    } catch (error) {
+      console.error("Error saving response:", error);
+      alert("Error al guardar la respuesta.");
     }
   };
 
@@ -127,7 +140,41 @@ export default function ReviewManager() {
                         rows={2}
                       />
                     ) : (
-                      <p className="text-sm text-stone-600 max-w-md line-clamp-2">{review.comment}</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-stone-600 max-w-md line-clamp-2">{review.comment}</p>
+                        {review.adminResponse && (
+                          <div className="bg-emerald-50 p-2 rounded-lg border border-emerald-100">
+                            <p className="text-[10px] font-bold text-emerald-700 uppercase mb-1">Tu Respuesta:</p>
+                            <p className="text-xs text-emerald-600 italic">"{review.adminResponse}"</p>
+                          </div>
+                        )}
+                        {respondingId === review.id && (
+                          <div className="mt-2 p-3 bg-blue-50 rounded-xl border border-blue-100 space-y-2">
+                            <label className="block text-[10px] font-bold text-blue-700 uppercase">Tu Respuesta:</label>
+                            <textarea 
+                              value={responseText}
+                              onChange={(e) => setResponseText(e.target.value)}
+                              className="text-xs text-stone-600 border border-blue-200 rounded-lg px-2 py-1 w-full focus:ring-2 focus:ring-blue-500 outline-none"
+                              placeholder="Escribe tu respuesta aquí..."
+                              rows={3}
+                            />
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => saveResponse(review.id)}
+                                className="bg-blue-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold hover:bg-blue-700 transition-colors"
+                              >
+                                Publicar Respuesta
+                              </button>
+                              <button 
+                                onClick={() => {setRespondingId(null); setResponseText('');}}
+                                className="bg-white text-stone-500 border border-stone-200 px-3 py-1 rounded-lg text-[10px] font-bold hover:bg-stone-50 transition-colors"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </td>
                   <td className="px-6 py-4">
@@ -164,6 +211,16 @@ export default function ReviewManager() {
                       </>
                     ) : (
                       <>
+                        <button 
+                          onClick={() => {
+                            setRespondingId(review.id);
+                            setResponseText(review.adminResponse || '');
+                          }}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          title="Responder"
+                        >
+                          <MessageSquare size={18} />
+                        </button>
                         <button 
                           onClick={() => startEdit(review)}
                           className="p-1 text-stone-600 hover:bg-stone-50 rounded"
@@ -253,7 +310,34 @@ export default function ReviewManager() {
                     rows={3}
                   />
                 ) : (
-                  <p className="text-sm text-stone-600">{review.comment}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-stone-600">{review.comment}</p>
+                    {review.adminResponse && (
+                      <div className="bg-emerald-50 p-2 rounded-lg border border-emerald-100">
+                        <p className="text-[10px] font-bold text-emerald-700 uppercase">Tu Respuesta:</p>
+                        <p className="text-xs text-emerald-600 italic">"{review.adminResponse}"</p>
+                      </div>
+                    )}
+                    {respondingId === review.id && (
+                      <div className="mt-2 p-3 bg-blue-50 rounded-xl border border-blue-100 space-y-2">
+                        <textarea 
+                          value={responseText}
+                          onChange={(e) => setResponseText(e.target.value)}
+                          className="text-xs text-stone-600 border border-blue-200 rounded-lg px-2 py-1 w-full"
+                          placeholder="Escribe tu respuesta..."
+                          rows={2}
+                        />
+                        <div className="flex gap-2">
+                          <button onClick={() => saveResponse(review.id)} className="bg-blue-600 text-white px-2 py-1 rounded text-[10px] font-bold">
+                            Responder
+                          </button>
+                          <button onClick={() => {setRespondingId(null); setResponseText('');}} className="bg-white text-stone-500 border border-stone-200 px-2 py-1 rounded text-[10px] font-bold">
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -269,6 +353,16 @@ export default function ReviewManager() {
                   </>
                 ) : (
                   <>
+                    <button 
+                      onClick={() => {
+                        setRespondingId(review.id);
+                        setResponseText(review.adminResponse || '');
+                      }} 
+                      className="p-2 text-blue-600 bg-blue-50 rounded-lg"
+                      title="Responder"
+                    >
+                      <MessageSquare size={16} />
+                    </button>
                     <button onClick={() => startEdit(review)} className="p-2 text-stone-600 bg-stone-50 rounded-lg">
                       <Edit2 size={16} />
                     </button>

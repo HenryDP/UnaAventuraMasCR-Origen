@@ -84,6 +84,20 @@ export default function ReviewSection({ tourId }: ReviewSectionProps) {
                 </div>
               </div>
               <p className="text-stone-600 italic leading-relaxed">"{review.comment}"</p>
+              
+              {review.adminResponse && (
+                <div className="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-6 h-6 bg-emerald-600 rounded-full flex items-center justify-center text-white">
+                      <User size={12} />
+                    </div>
+                    <span className="text-xs font-bold text-emerald-700 uppercase">Respuesta de Una Aventura Más</span>
+                  </div>
+                  <p className="text-sm text-emerald-600 italic leading-relaxed">
+                    "{review.adminResponse}"
+                  </p>
+                </div>
+              )}
             </motion.div>
           ))}
         </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Star, Quote } from 'lucide-react';
+import { Star, Quote, User } from 'lucide-react';
 import { collection, query, orderBy, limit, onSnapshot, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
@@ -10,6 +10,7 @@ interface Review {
   comment: string;
   rating: number;
   createdAt: any;
+  adminResponse?: string;
 }
 
 export default function ReviewsList() {
@@ -99,6 +100,20 @@ export default function ReviewsList() {
           <p className="text-stone-600 italic mb-6 leading-relaxed relative z-10">
             "{review.comment}"
           </p>
+
+          {review.adminResponse && (
+            <div className="mb-6 p-4 bg-emerald-50 rounded-2xl border border-emerald-100 relative z-10">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-5 h-5 bg-emerald-600 rounded-full flex items-center justify-center text-white">
+                  <User size={10} />
+                </div>
+                <span className="text-[10px] font-bold text-emerald-700 uppercase">Respuesta de la Agencia</span>
+              </div>
+              <p className="text-xs text-emerald-600 italic leading-relaxed">
+                "{review.adminResponse}"
+              </p>
+            </div>
+          )}
           
           <div className="flex items-center gap-3 relative z-10">
             <div className="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold text-sm">
