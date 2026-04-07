@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Star, Quote, User } from 'lucide-react';
 import { collection, query, orderBy, limit, onSnapshot, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { tourService } from '../services/tourService';
 
 interface Review {
   id: string;
@@ -22,26 +23,21 @@ export default function ReviewsList() {
   useEffect(() => {
     if (!db) return;
     
-    const q = query(
-      collection(db, 'reviews'),
-      where('status', '==', 'approved'),
-      orderBy('createdAt', 'desc'),
-      limit(6)
+    // Usamos el servicio para obtener las últimas reseñas aprobadas
+    // El servicio ya maneja el filtrado en memoria para evitar errores de índice
+    const unsubscribe = tourService.subscribeToLatestReviews(
+      6, 
+      (reviewsData) => {
+        setReviews(reviewsData);
+        setLoading(false);
+        setError(null);
+      },
+      (err) => {
+        console.error("Error fetching reviews:", err);
+        setError(`Error al cargar las reseñas: ${err.message || 'Error desconocido'}`);
+        setLoading(false);
+      }
     );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const reviewsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Review[];
-      setReviews(reviewsData);
-      setLoading(false);
-      setError(null);
-    }, (err) => {
-      console.error("Error fetching reviews:", err);
-      setError("Error al cargar las reseñas. Es posible que falte un índice en la base de datos.");
-      setLoading(false);
-    });
 
     return () => unsubscribe();
   }, []);

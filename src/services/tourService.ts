@@ -198,16 +198,24 @@ export const tourService = {
     
     const q = query(
       collection(db, REVIEWS_COLLECTION),
-      where('tourId', '==', tourId),
-      where('status', '==', 'approved'),
-      orderBy('createdAt', 'desc')
+      where('tourId', '==', tourId)
     );
 
     return onSnapshot(q, (snapshot) => {
-      const reviews = snapshot.docs.map(doc => ({
+      let reviews = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Review[];
+
+      // Filter and sort in memory to avoid needing a composite index
+      reviews = reviews
+        .filter(r => r.status === 'approved')
+        .sort((a, b) => {
+          const dateA = a.createdAt?.seconds || 0;
+          const dateB = b.createdAt?.seconds || 0;
+          return dateB - dateA;
+        });
+
       callback(reviews);
     }, (error) => {
       console.error("Error listening to reviews:", error);
@@ -293,7 +301,7 @@ export const tourService = {
   /**
    * Subscribe to all reviews (Admin view)
    */
-  subscribeToAllReviews: (callback: (reviews: Review[]) => void) => {
+  subscribeToAllReviews: (callback: (reviews: Review[]) => void, errorCallback?: (error: any) => void) => {
     if (!db) return () => {};
     
     const q = query(
@@ -309,30 +317,35 @@ export const tourService = {
       callback(reviews);
     }, (error) => {
       console.error("Error listening to all reviews:", error);
+      if (errorCallback) errorCallback(error);
     });
   },
 
   /**
    * Subscribe to the latest reviews globally
    */
-  subscribeToLatestReviews: (limitCount: number, callback: (reviews: Review[]) => void) => {
+  subscribeToLatestReviews: (limitCount: number, callback: (reviews: Review[]) => void, errorCallback?: (error: any) => void) => {
     if (!db) return () => {};
     
     const q = query(
       collection(db, REVIEWS_COLLECTION),
-      where('status', '==', 'approved'),
       orderBy('createdAt', 'desc'),
-      limit(limitCount)
+      limit(limitCount * 2) // Fetch more to account for unapproved ones
     );
 
     return onSnapshot(q, (snapshot) => {
-      const reviews = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Review[];
+      const reviews = snapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as Review))
+        .filter(r => r.status === 'approved')
+        .slice(0, limitCount);
+      
       callback(reviews);
     }, (error) => {
       console.error("Error listening to latest reviews:", error);
+      if (errorCallback) errorCallback(error);
     });
   }
 };

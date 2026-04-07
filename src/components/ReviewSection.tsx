@@ -24,7 +24,7 @@ export default function ReviewSection({ tourId }: ReviewSectionProps) {
       },
       (err) => {
         console.error("Error fetching reviews:", err);
-        setError("Error al cargar las reseñas. Es posible que falte un índice en la base de datos.");
+        setError(`Error al cargar las reseñas: ${err.message || 'Error desconocido'}`);
         setLoading(false);
       }
     );

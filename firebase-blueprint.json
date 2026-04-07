@@ -23,12 +23,31 @@
         "status": { "type": "string", "enum": ["pending", "contacted", "confirmed", "cancelled"], "description": "Status of the quote." }
       },
       "required": ["customerName", "customerEmail", "customerPhone", "startDate", "endDate", "peopleCount", "totalPrice"]
+    },
+    "review": {
+      "title": "Review",
+      "description": "A customer review for a tour or the agency.",
+      "type": "object",
+      "properties": {
+        "userName": { "type": "string", "description": "Name of the reviewer." },
+        "comment": { "type": "string", "description": "The review text." },
+        "rating": { "type": "number", "description": "Rating from 1 to 5." },
+        "tourId": { "type": "string", "description": "ID of the tour being reviewed (optional)." },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"], "description": "Moderation status." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the review was submitted." },
+        "adminResponse": { "type": "string", "description": "Official response from the agency." }
+      },
+      "required": ["userName", "comment", "rating", "status", "createdAt"]
     }
   },
   "firestore": {
     "/quotes/{quoteId}": {
       "schema": "quote",
       "description": "Collection of travel quotes."
+    },
+    "/reviews/{reviewId}": {
+      "schema": "review",
+      "description": "Collection of customer reviews."
     }
   }
 }
