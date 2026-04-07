@@ -16,7 +16,11 @@ export default function ReviewsList() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
+    if (!db) return;
+    
     const q = query(
       collection(db, 'reviews'),
       where('status', '==', 'approved'),
@@ -31,8 +35,10 @@ export default function ReviewsList() {
       })) as Review[];
       setReviews(reviewsData);
       setLoading(false);
-    }, (error) => {
-      console.error("Error fetching reviews:", error);
+      setError(null);
+    }, (err) => {
+      console.error("Error fetching reviews:", err);
+      setError("Error al cargar las reseñas. Es posible que falte un índice en la base de datos.");
       setLoading(false);
     });
 
@@ -43,6 +49,15 @@ export default function ReviewsList() {
     return (
       <div className="flex justify-center py-12">
         <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12 text-red-500 bg-red-50 rounded-2xl border border-red-100 max-w-2xl mx-auto">
+        <p className="font-bold mb-2">¡Ups! Algo salió mal.</p>
+        <p className="text-sm">{error}</p>
       </div>
     );
   }

@@ -155,7 +155,7 @@ export default function AdminPanel({ user }: { user: User }) {
         <nav className="flex md:flex-col overflow-x-auto md:overflow-x-visible p-2 md:p-4 space-x-1 md:space-x-0 md:space-y-2 no-scrollbar">
           <button 
             onClick={() => setActiveTab('dashboard')}
-            className={`flex-shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'dashboard' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
+            className={`shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'dashboard' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
           >
             <BarChart3 size={18} />
             <span className="font-medium text-sm">Dashboard</span>
@@ -163,7 +163,7 @@ export default function AdminPanel({ user }: { user: User }) {
           
           <button 
             onClick={() => setActiveTab('tours')}
-            className={`flex-shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'tours' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
+            className={`shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'tours' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
           >
             <Package size={18} />
             <span className="font-medium text-sm">Tours</span>
@@ -171,7 +171,7 @@ export default function AdminPanel({ user }: { user: User }) {
 
           <button 
             onClick={() => setActiveTab('quotes')}
-            className={`flex-shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'quotes' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
+            className={`shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'quotes' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
           >
             <FileText size={18} />
             <span className="font-medium text-sm">Cotizaciones</span>
@@ -179,7 +179,7 @@ export default function AdminPanel({ user }: { user: User }) {
 
           <button 
             onClick={() => setActiveTab('itinerary')}
-            className={`flex-shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'itinerary' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
+            className={`shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'itinerary' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
           >
             <Compass size={18} />
             <span className="font-medium text-sm">Config. Itinerario</span>
@@ -187,7 +187,7 @@ export default function AdminPanel({ user }: { user: User }) {
 
           <button 
             onClick={() => setActiveTab('reviews')}
-            className={`flex-shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'reviews' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
+            className={`shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'reviews' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
           >
             <Star size={18} />
             <span className="font-medium text-sm">Reseñas</span>
@@ -195,7 +195,7 @@ export default function AdminPanel({ user }: { user: User }) {
           
           <button 
             onClick={() => setActiveTab('appearance')}
-            className={`flex-shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'appearance' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
+            className={`shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'appearance' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
           >
             <LayoutIcon size={18} />
             <span className="font-medium text-sm">Apariencia</span>
@@ -203,7 +203,7 @@ export default function AdminPanel({ user }: { user: User }) {
           
           <button 
             onClick={() => setActiveTab('settings')}
-            className={`flex-shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
+            className={`shrink-0 md:w-full flex items-center space-x-3 px-4 py-2 md:py-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-emerald-600 text-white' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
           >
             <Settings size={18} />
             <span className="font-medium text-sm">Ajustes</span>
@@ -225,7 +225,7 @@ export default function AdminPanel({ user }: { user: User }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-grow overflow-y-auto p-4 md:p-8">
+      <main className="grow overflow-y-auto p-4 md:p-8">
         {activeTab === 'dashboard' && (
           <div className="space-y-8">
             <h2 className="text-2xl font-bold text-stone-900">Dashboard</h2>
@@ -267,14 +267,14 @@ export default function AdminPanel({ user }: { user: User }) {
             <div className="flex space-x-4 border-b border-stone-200 overflow-x-auto no-scrollbar">
               <button 
                 onClick={() => setTourSubTab('nacional')}
-                className={`flex-shrink-0 pb-2 px-4 text-sm font-bold transition-colors relative ${tourSubTab === 'nacional' ? 'text-emerald-600' : 'text-stone-500 hover:text-stone-700'}`}
+                className={`shrink-0 pb-2 px-4 text-sm font-bold transition-colors relative ${tourSubTab === 'nacional' ? 'text-emerald-600' : 'text-stone-500 hover:text-stone-700'}`}
               >
                 Nacionales
                 {tourSubTab === 'nacional' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600"></div>}
               </button>
               <button 
                 onClick={() => setTourSubTab('internacional')}
-                className={`flex-shrink-0 pb-2 px-4 text-sm font-bold transition-colors relative ${tourSubTab === 'internacional' ? 'text-emerald-600' : 'text-stone-500 hover:text-stone-700'}`}
+                className={`shrink-0 pb-2 px-4 text-sm font-bold transition-colors relative ${tourSubTab === 'internacional' ? 'text-emerald-600' : 'text-stone-500 hover:text-stone-700'}`}
               >
                 Internacionales
                 {tourSubTab === 'internacional' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600"></div>}
@@ -398,7 +398,7 @@ export default function AdminPanel({ user }: { user: User }) {
                     <input 
                       type="text" 
                       {...registerConfig("logoUrl")} 
-                      className="flex-grow rounded-md border-stone-300 border p-2" 
+                      className="grow rounded-md border-stone-300 border p-2" 
                       placeholder="URL del logo"
                     />
                     <input

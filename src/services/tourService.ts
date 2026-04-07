@@ -191,12 +191,13 @@ export const tourService = {
   /**
    * Subscribe to reviews for a specific tour
    */
-  subscribeToTourReviews: (tourId: string, callback: (reviews: Review[]) => void) => {
+  subscribeToTourReviews: (tourId: string, callback: (reviews: Review[]) => void, errorCallback?: (error: any) => void) => {
     if (!db) return () => {};
     
     const q = query(
       collection(db, REVIEWS_COLLECTION),
       where('tourId', '==', tourId),
+      where('status', '==', 'approved'),
       orderBy('createdAt', 'desc')
     );
 
@@ -208,6 +209,7 @@ export const tourService = {
       callback(reviews);
     }, (error) => {
       console.error("Error listening to reviews:", error);
+      if (errorCallback) errorCallback(error);
     });
   },
 
@@ -215,28 +217,31 @@ export const tourService = {
    * Add a new review
    */
   addReview: async (reviewData: { tourId?: string; userName: string; rating: number; comment: string }) => {
-    if (!db) throw new Error("Firebase not initialized");
-    
-    console.log("Adding review:", reviewData);
-    
-    const data: any = {
-      userName: reviewData.userName,
-      rating: reviewData.rating,
-      comment: reviewData.comment,
-      status: 'approved', // Auto-approve for now
-      createdAt: serverTimestamp()
-    };
-
-    if (reviewData.tourId) {
-      data.tourId = reviewData.tourId;
-    }
-    
     try {
+      if (!db) {
+        console.error("Firebase Firestore (db) is not initialized. Check your environment variables.");
+        throw new Error("El servicio de base de datos no está disponible. Por favor verifica la configuración de Firebase.");
+      }
+      
+      const data: any = {
+        userName: reviewData.userName.trim(),
+        rating: Number(reviewData.rating),
+        comment: reviewData.comment.trim(),
+        status: 'approved', // Auto-approve for now
+        createdAt: serverTimestamp()
+      };
+
+      if (reviewData.tourId) {
+        data.tourId = reviewData.tourId;
+      }
+      
       const docRef = await addDoc(collection(db, REVIEWS_COLLECTION), data);
-      console.log("Review added with ID:", docRef.id);
       return docRef;
-    } catch (error) {
-      console.error("Error in addReview service:", error);
+    } catch (error: any) {
+      console.error("Detailed error in addReview:", error);
+      if (error.code === 'permission-denied') {
+        throw new Error("No tienes permisos para enviar reseñas. Por favor contacta al administrador.");
+      }
       throw error;
     }
   },

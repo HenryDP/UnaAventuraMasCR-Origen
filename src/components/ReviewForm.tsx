@@ -4,10 +4,11 @@ import { Star, Send, X, CheckCircle } from 'lucide-react';
 import { tourService } from '../services/tourService';
 
 interface ReviewFormProps {
+  tourId?: string;
   onSuccess?: () => void;
 }
 
-export default function ReviewForm({ onSuccess }: ReviewFormProps) {
+export default function ReviewForm({ tourId, onSuccess }: ReviewFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [rating, setRating] = useState(5);
   const [hover, setHover] = useState(0);
@@ -26,6 +27,7 @@ export default function ReviewForm({ onSuccess }: ReviewFormProps) {
     setIsSubmitting(true);
     try {
       await tourService.addReview({
+        tourId,
         userName,
         comment,
         rating
@@ -39,9 +41,9 @@ export default function ReviewForm({ onSuccess }: ReviewFormProps) {
         setRating(5);
         if (onSuccess) onSuccess();
       }, 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding review:", error);
-      alert("Hubo un error al enviar tu reseña. Por favor intenta de nuevo.");
+      alert("Error: " + (error.message || "Hubo un error al enviar tu reseña."));
     } finally {
       setIsSubmitting(false);
     }
