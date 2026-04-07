@@ -237,7 +237,7 @@ export const tourService = {
         userName: reviewData.userName.trim(),
         rating: Number(reviewData.rating),
         comment: reviewData.comment.trim(),
-        status: 'approved', // Auto-approve for now
+        status: 'approved', // Publicly visible immediately
         createdAt: serverTimestamp()
       };
 
