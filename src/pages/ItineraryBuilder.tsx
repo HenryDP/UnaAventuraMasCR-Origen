@@ -22,10 +22,16 @@ import {
   Home as HomeIcon,
   Save,
   Loader2,
-  Compass
+  Compass,
+  Printer,
+  Share2,
+  FileText,
+  Image as ImageIcon,
+  Share
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import html2canvas from 'html2canvas';
 import { ITINERARY_CONFIG, ItineraryConfig } from '../constants/itineraryConfig';
 import { db } from '../lib/firebase';
 import { collection, addDoc, getDocs, query, where, serverTimestamp, doc, onSnapshot } from 'firebase/firestore';
@@ -61,6 +67,7 @@ export default function ItineraryBuilder() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [availableTours, setAvailableTours] = useState<Tour[]>([]);
   const [config, setConfig] = useState<ItineraryConfig>(ITINERARY_CONFIG);
   const [data, setData] = useState<ItineraryData>({
@@ -297,6 +304,182 @@ export default function ItineraryBuilder() {
     doc.save(`Cotizacion_${type === 'tourist' ? 'Turista' : 'Agencia'}_${Date.now()}.pdf`);
   };
 
+  const exportToImage = async () => {
+    const element = document.getElementById('itinerary-preview');
+    if (!element) return;
+    
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        logging: false,
+        useCORS: true
+      });
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `Itinerario_${data.customerName}_${Date.now()}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error("Error exporting to image:", error);
+      alert("Error al exportar imagen.");
+    }
+  };
+
+  const exportToText = () => {
+    const text = `
+ITINERARIO DE VIAJE - UNA AVENTURA MÁS
+--------------------------------------
+Cliente: ${data.customerName}
+Email: ${data.customerEmail}
+Teléfono: ${data.customerPhone}
+Periodo: ${data.startDate} al ${data.endDate} (${calculations.days} días)
+Personas: ${data.peopleCount}
+
+LOGÍSTICA:
+- Transporte: ${calculations.vehicleName}
+- Hospedaje: ${data.includeHospedaje ? 'Incluido' : 'No incluido'}
+- Guía: ${data.includeGuia ? 'Incluido' : 'No incluido'}
+
+DESTINOS:
+${data.selectedDestinations.map(id => `- ${config.destinos.find(d => d.id === id)?.nombre}`).join('\n')}
+
+TOURS:
+${data.selectedTours.map(id => `- ${availableTours.find(t => t.id === id)?.title}`).join('\n')}
+
+PRECIO TOTAL ESTIMADO: ₡${calculations.finalPrice.toLocaleString()}
+--------------------------------------
+¡Gracias por elegir Una Aventura Más!
+    `;
+    const blob = new Blob([text], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.download = `Itinerario_${data.customerName}.txt`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: 'Mi Itinerario - Una Aventura Más',
+      text: `¡Hola! Mira el itinerario que diseñé para mi viaje a Costa Rica con Una Aventura Más. Precio estimado: ₡${calculations.finalPrice.toLocaleString()}`,
+      url: window.location.href
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      const whatsappText = encodeURIComponent(`${shareData.text}\n\nCliente: ${data.customerName}\nDestinos: ${data.selectedDestinations.map(id => config.destinos.find(d => d.id === id)?.nombre).join(', ')}`);
+      window.open(`https://wa.me/?text=${whatsappText}`, '_blank');
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const SummaryPreview = () => (
+    <div id="itinerary-preview" className="bg-white p-8 rounded-3xl border border-stone-200 shadow-sm print:shadow-none print:border-none">
+      <div className="flex justify-between items-start mb-8 border-b border-stone-100 pb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-100">
+            <Compass className="text-white w-7 h-7" />
+          </div>
+          <div>
+            <h2 className="text-xl font-black tracking-tighter uppercase leading-none">Una Aventura Más</h2>
+            <p className="text-[10px] font-black text-emerald-600 tracking-widest uppercase mt-1">Costa Rica</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Cotización # {Math.floor(Math.random() * 10000)}</p>
+          <p className="text-xs font-bold text-stone-600">{new Date().toLocaleDateString()}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-8 mb-8">
+        <div className="space-y-1">
+          <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Información del Cliente</p>
+          <p className="text-sm font-bold text-stone-900">{data.customerName}</p>
+          <p className="text-xs text-stone-500">{data.customerEmail}</p>
+          <p className="text-xs text-stone-500">{data.customerPhone}</p>
+        </div>
+        <div className="space-y-1 text-right">
+          <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Detalles del Viaje</p>
+          <p className="text-sm font-bold text-stone-900">{calculations.days} días / {calculations.nights} noches</p>
+          <p className="text-xs text-stone-500">{data.startDate} al {data.endDate}</p>
+          <p className="text-xs text-stone-500">{data.peopleCount} personas</p>
+        </div>
+      </div>
+
+      <div className="space-y-6 mb-8">
+        <div className="bg-stone-50 p-4 rounded-2xl">
+          <h4 className="text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Logística y Servicios</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center gap-2 text-xs">
+              <Car size={14} className="text-emerald-600" />
+              <span className="text-stone-600">Transporte: <b className="text-stone-900">{calculations.vehicleName}</b></span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <Hotel size={14} className="text-emerald-600" />
+              <span className="text-stone-600">Hospedaje: <b className="text-stone-900">{data.includeHospedaje ? 'Incluido' : 'No incluido'}</b></span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <UserCheck size={14} className="text-emerald-600" />
+              <span className="text-stone-600">Guía: <b className="text-stone-900">{data.includeGuia ? 'Incluido' : 'No incluido'}</b></span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <Utensils size={14} className="text-emerald-600" />
+              <span className="text-stone-600">Comidas: <b className="text-stone-900">{data.includeAlimentacion.length > 0 ? data.includeAlimentacion.join(', ') : 'No incluidas'}</b></span>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <h4 className="text-xs font-black text-stone-400 uppercase tracking-widest">Itinerario Seleccionado</h4>
+          <div className="space-y-2">
+            {data.selectedDestinations.map(id => {
+              const dest = config.destinos.find(d => d.id === id);
+              return (
+                <div key={id} className="flex items-start gap-3 p-3 border border-stone-100 rounded-xl">
+                  <MapPin size={16} className="text-emerald-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-stone-900">{dest?.nombre}</p>
+                    <p className="text-[10px] text-stone-500">{dest?.descripcion}</p>
+                  </div>
+                </div>
+              );
+            })}
+            {data.selectedTours.map(id => {
+              const tour = availableTours.find(t => t.id === id);
+              return (
+                <div key={id} className="flex items-start gap-3 p-3 border border-stone-100 rounded-xl">
+                  <Compass size={16} className="text-emerald-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-stone-900">{tour?.title}</p>
+                    <p className="text-[10px] text-stone-500">{tour?.location}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center pt-6 border-t border-stone-100">
+        <div>
+          <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Inversión Total Estimada</p>
+          <p className="text-3xl font-black text-emerald-700">₡{calculations.finalPrice.toLocaleString()}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] font-medium text-stone-400 italic">Precios sujetos a disponibilidad</p>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col">
       {/* Immersive Header */}
@@ -336,7 +519,7 @@ export default function ItineraryBuilder() {
       </div>
 
       {/* Main Content */}
-      <div className="grow max-w-4xl w-full mx-auto p-3 sm:p-8">
+      <div className="flex-grow max-w-4xl w-full mx-auto p-3 sm:p-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
@@ -551,7 +734,7 @@ export default function ItineraryBuilder() {
                           <div className={`p-2 rounded-lg shrink-0 ${data.selectedTours.includes(t.id) ? 'bg-emerald-600 text-white' : 'bg-stone-100 text-stone-500'}`}>
                             <Compass size={20} />
                           </div>
-                          <div className="grow">
+                          <div className="flex-grow">
                             <div className="flex justify-between items-start">
                               <p className="font-bold text-stone-900 text-sm">{t.title}</p>
                               {data.selectedTours.includes(t.id) && <CheckCircle2 className="text-emerald-600" size={16} />}
@@ -680,90 +863,133 @@ export default function ItineraryBuilder() {
             {/* STEP D: SUMMARY */}
             {currentStep === 4 && (
               <div className="p-6 sm:p-10 space-y-8">
-                <div className="flex items-center gap-4 border-b border-stone-100 pb-6">
-                  <div className="bg-emerald-100 p-3 rounded-2xl text-emerald-600">
-                    <CheckCircle2 size={32} />
+                <div className="flex items-center justify-between border-b border-stone-100 pb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-emerald-100 p-3 rounded-2xl text-emerald-600">
+                      <CheckCircle2 size={32} />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-stone-900">Paso 5: Resumen y Cotización</h2>
+                      <p className="text-stone-500 text-sm">Revisa los detalles finales antes de generar los documentos.</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-stone-900">Paso 5: Resumen y Cotización</h2>
-                    <p className="text-stone-500 text-sm">Revisa los detalles finales antes de generar los documentos.</p>
-                  </div>
+                  <button 
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-widest hover:text-emerald-700"
+                  >
+                    {showPreview ? 'Ver Acciones' : 'Ver Vista Previa'}
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {showPreview ? (
                   <div className="space-y-6">
-                    <div className="bg-stone-50 p-6 rounded-3xl space-y-4">
-                      <h3 className="text-xs font-black text-stone-400 uppercase tracking-widest">Detalles del Itinerario</h3>
-                      <div className="space-y-3">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-stone-500">Cliente</span>
-                          <span className="font-bold text-stone-900">{data.customerName}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-stone-500">Periodo</span>
-                          <span className="font-bold text-stone-900">{data.startDate} al {data.endDate}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-stone-500">Duración</span>
-                          <span className="font-bold text-stone-900">{calculations.days} días / {calculations.nights} noches</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-stone-500">Transporte</span>
-                          <span className="font-bold text-stone-900">{calculations.vehicleName}</span>
+                    <SummaryPreview />
+                    <div className="flex justify-center">
+                      <button 
+                        onClick={() => setShowPreview(false)}
+                        className="text-stone-400 font-bold text-xs uppercase tracking-widest hover:text-stone-600"
+                      >
+                        Cerrar Vista Previa
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                      <div className="bg-stone-50 p-6 rounded-3xl space-y-4">
+                        <h3 className="text-xs font-black text-stone-400 uppercase tracking-widest">Detalles del Itinerario</h3>
+                        <div className="space-y-3">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-stone-500">Cliente</span>
+                            <span className="font-bold text-stone-900">{data.customerName}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-stone-500">Periodo</span>
+                            <span className="font-bold text-stone-900">{data.startDate} al {data.endDate}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-stone-500">Duración</span>
+                            <span className="font-bold text-stone-900">{calculations.days} días / {calculations.nights} noches</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-stone-500">Transporte</span>
+                            <span className="font-bold text-stone-900">{calculations.vehicleName}</span>
+                          </div>
                         </div>
                       </div>
+
+                      <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">
+                        <h3 className="text-xs font-black text-emerald-600 uppercase tracking-widest mb-4">Inversión Total</h3>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-4xl font-black text-emerald-700">₡{calculations.finalPrice.toLocaleString()}</span>
+                          <span className="text-emerald-600 text-xs font-bold uppercase">I.V.I</span>
+                        </div>
+                        <p className="text-[10px] text-emerald-600 mt-2 font-bold uppercase tracking-widest">Precio final para el cliente</p>
+                      </div>
+
+                      <button 
+                        onClick={saveQuoteToFirebase}
+                        disabled={isSaving || saveSuccess}
+                        className={`w-full flex items-center justify-center gap-3 p-4 rounded-2xl font-bold transition-all shadow-lg ${saveSuccess ? 'bg-green-100 text-green-700' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
+                      >
+                        {isSaving ? <Loader2 className="animate-spin" size={20} /> : saveSuccess ? <CheckCircle2 size={20} /> : <Save size={20} />}
+                        {saveSuccess ? 'Cotización Guardada' : 'Guardar y Solicitar Cotización'}
+                      </button>
                     </div>
 
-                    <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">
-                      <h3 className="text-xs font-black text-emerald-600 uppercase tracking-widest mb-4">Inversión Total</h3>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-black text-emerald-700">₡{calculations.finalPrice.toLocaleString()}</span>
-                        <span className="text-emerald-600 text-xs font-bold uppercase">I.V.I</span>
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-black text-stone-400 uppercase tracking-widest">Exportar y Compartir</h3>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <button 
+                          onClick={() => generatePDF('tourist')}
+                          className="flex flex-col items-center justify-center p-4 rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow-md gap-2"
+                        >
+                          <Download size={20} />
+                          <span className="text-[10px] font-bold uppercase">PDF Turista</span>
+                        </button>
+                        <button 
+                          onClick={() => generatePDF('agency')}
+                          className="flex flex-col items-center justify-center p-4 rounded-2xl bg-stone-800 text-white hover:bg-stone-900 transition-all shadow-md gap-2"
+                        >
+                          <AlertCircle size={20} />
+                          <span className="text-[10px] font-bold uppercase">PDF Agencia</span>
+                        </button>
+                        <button 
+                          onClick={exportToImage}
+                          className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 transition-all shadow-sm gap-2"
+                        >
+                          <ImageIcon size={20} />
+                          <span className="text-[10px] font-bold uppercase">Imagen PNG</span>
+                        </button>
+                        <button 
+                          onClick={exportToText}
+                          className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 transition-all shadow-sm gap-2"
+                        >
+                          <FileText size={20} />
+                          <span className="text-[10px] font-bold uppercase">Texto Plano</span>
+                        </button>
                       </div>
-                      <p className="text-[10px] text-emerald-600 mt-2 font-bold uppercase tracking-widest">Precio final para el cliente</p>
+
+                      <div className="pt-2 space-y-3">
+                        <button 
+                          onClick={handleShare}
+                          className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg font-bold text-sm"
+                        >
+                          <Share2 size={18} />
+                          Compartir Itinerario
+                        </button>
+                        <button 
+                          onClick={handlePrint}
+                          className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition-all font-bold text-sm"
+                        >
+                          <Printer size={18} />
+                          Imprimir Documento
+                        </button>
+                      </div>
                     </div>
-
-                    <button 
-                      onClick={saveQuoteToFirebase}
-                      disabled={isSaving || saveSuccess}
-                      className={`w-full flex items-center justify-center gap-3 p-4 rounded-2xl font-bold transition-all shadow-lg ${saveSuccess ? 'bg-green-100 text-green-700' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
-                    >
-                      {isSaving ? <Loader2 className="animate-spin" size={20} /> : saveSuccess ? <CheckCircle2 size={20} /> : <Save size={20} />}
-                      {saveSuccess ? 'Cotización Guardada' : 'Guardar y Solicitar Cotización'}
-                    </button>
                   </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-xs font-black text-stone-400 uppercase tracking-widest">Acciones Disponibles</h3>
-                    <button 
-                      onClick={() => generatePDF('tourist')}
-                      className="w-full flex items-center justify-between p-6 rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow-lg group"
-                    >
-                      <div className="flex items-center gap-4">
-                        <Download size={24} />
-                        <div className="text-left">
-                          <p className="font-bold">PDF Versión Turista</p>
-                          <p className="text-[10px] opacity-80 uppercase font-bold">Diseño premium para el cliente</p>
-                        </div>
-                      </div>
-                      <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                    </button>
-
-                    <button 
-                      onClick={() => generatePDF('agency')}
-                      className="w-full flex items-center justify-between p-6 rounded-2xl bg-stone-800 text-white hover:bg-stone-900 transition-all shadow-lg group"
-                    >
-                      <div className="flex items-center gap-4">
-                        <AlertCircle size={24} />
-                        <div className="text-left">
-                          <p className="font-bold">PDF Versión Agencia</p>
-                          <p className="text-[10px] opacity-80 uppercase font-bold">Desglose de costos y rentabilidad</p>
-                        </div>
-                      </div>
-                      <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                    </button>
-                  </div>
-                </div>
+                )}
               </div>
             )}
 

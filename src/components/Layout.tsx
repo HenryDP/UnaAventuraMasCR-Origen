@@ -275,10 +275,10 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
           dragConstraints={{ 
             left: -window.innerWidth + 80, 
             right: 0, 
-            top: -window.innerHeight + 100, 
-            bottom: 0 
+            top: 0, 
+            bottom: window.innerHeight - 150 
           }}
-          className="fixed bottom-6 right-6 z-[6000]"
+          className="fixed top-24 right-6 z-[6000]"
         >
           <motion.button
             whileTap={{ scale: 0.9 }}
