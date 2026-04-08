@@ -72,7 +72,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
     <div className="min-h-screen flex flex-col font-sans text-stone-900">
       {/* Admin Bar */}
       {isAdmin && (
-        <div className="bg-emerald-900 text-white px-4 py-2 flex justify-between items-center text-xs font-bold sticky top-0 z-[60] shadow-xl">
+        <div className="bg-emerald-900 text-white px-4 py-2 flex justify-between items-center text-xs font-bold sticky top-0 z-60 shadow-xl">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             <span>MODO ADMINISTRADOR ACTIVO</span>
@@ -89,7 +89,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
 
       {/* Navigation */}
       {!isImmersivePage && (
-        <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-[36px]' : 'top-0'} ${isMenuOpen ? 'z-[1000]' : 'z-50'} border-b border-stone-100`}>
+        <nav className={`bg-white/80 backdrop-blur-md sticky ${isAdmin ? 'top-36px' : 'top-0'} ${isMenuOpen ? 'z-1000' : 'z-50'} border-b border-stone-100`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-20">
               <div className="flex items-center">

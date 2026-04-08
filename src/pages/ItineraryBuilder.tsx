@@ -30,7 +30,7 @@ import {
   Share
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import { ITINERARY_CONFIG, ItineraryConfig } from '../constants/itineraryConfig';
 import { db } from '../lib/firebase';
@@ -262,7 +262,7 @@ export default function ItineraryBuilder() {
       ['Tours Seleccionados', data.selectedTours.map(id => availableTours.find(t => t.id === id)?.title).join(', ')]
     ];
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: y,
       head: [['Servicio', 'Detalle']],
       body: tableData,
@@ -292,7 +292,7 @@ export default function ItineraryBuilder() {
         ['Precio de Venta Final', `₡${calculations.finalPrice.toLocaleString()}`]
       ];
 
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: y,
         head: [['Concepto Financiero', 'Monto']],
         body: agencyData,
