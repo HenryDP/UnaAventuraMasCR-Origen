@@ -98,14 +98,32 @@ export default function ConfigModal({ config, isOpen, onClose }: ConfigModalProp
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h3 className="font-bold text-emerald-600 text-sm uppercase tracking-wider">Hero Section (Portada Principal)</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-emerald-600 text-sm uppercase tracking-wider">Hero Section (Portada Principal)</h3>
+              </div>
+
+              <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-stone-800 block">Ocultar letras y textos sobre la foto</span>
+                  <span className="text-[11px] text-stone-500">Deja visible únicamente la imagen de portada limpia</span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    {...register('hideHeroText')} 
+                    className="sr-only peer" 
+                  />
+                  <div className="w-11 h-6 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
               <div>
                 <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Título Hero</label>
-                <input {...register('heroTitle')} className="w-full p-2.5 rounded-lg border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <input {...register('heroTitle')} className="w-full p-2.5 rounded-lg border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-xs" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Subtítulo Hero</label>
-                <textarea {...register('heroSubtitle')} rows={2} className="w-full p-2.5 rounded-lg border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <textarea {...register('heroSubtitle')} rows={2} className="w-full p-2.5 rounded-lg border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-xs" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Foto Principal del Hero</label>

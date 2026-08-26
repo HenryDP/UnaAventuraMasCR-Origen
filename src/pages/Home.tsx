@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ArrowRight, Star, Camera, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { ArrowRight, Star, Camera, Sparkles, Image as ImageIcon, Eye, EyeOff, ChevronDown } from 'lucide-react';
 import TourList from '../components/TourList';
 import ReviewsList from '../components/ReviewsList';
 import ReviewForm from '../components/ReviewForm';
@@ -10,10 +10,12 @@ import { db } from '../lib/firebase';
 import { SiteConfig } from '../components/TourCard';
 import { useAuth } from '../context/AuthContext';
 import HeroImageModal from '../components/HeroImageModal';
+import { tourService } from '../services/tourService';
 
 export default function Home() {
   const [siteConfig, setSiteConfig] = useState<SiteConfig | null>(null);
   const [isHeroModalOpen, setIsHeroModalOpen] = useState(false);
+  const [isTogglingText, setIsTogglingText] = useState(false);
   const { isAdmin } = useAuth();
 
   useEffect(() => {
@@ -27,6 +29,21 @@ export default function Home() {
   }, []);
 
   const heroImage = siteConfig?.heroImageUrl || "https://images.unsplash.com/photo-1527489377706-5bf97e608852?auto=format&fit=crop&q=80&w=1920";
+  const isHeroTextHidden = siteConfig?.hideHeroText ?? false;
+
+  const handleQuickToggleHeroText = async () => {
+    setIsTogglingText(true);
+    try {
+      await tourService.updateSiteConfig({
+        hideHeroText: !isHeroTextHidden
+      });
+    } catch (err) {
+      console.error("Error toggling hero text:", err);
+      alert("Error al actualizar la visibilidad del texto");
+    } finally {
+      setIsTogglingText(false);
+    }
+  };
 
   return (
     <div className="bg-white">
@@ -39,63 +56,99 @@ export default function Home() {
             className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-linear-to-b from-black/50 via-black/40 to-black/70"></div>
+          {/* Subtle gradient overlay when text is hidden, stronger overlay when text is shown */}
+          <div className={`absolute inset-0 transition-opacity duration-500 ${
+            isHeroTextHidden 
+              ? 'bg-linear-to-t from-black/40 via-transparent to-black/20' 
+              : 'bg-linear-to-b from-black/50 via-black/40 to-black/70'
+          }`}></div>
         </div>
 
-        {/* Admin Quick Action Button for Hero Image */}
+        {/* Admin Quick Action Controls */}
         {isAdmin && (
-          <div className="absolute top-6 right-6 z-20 animate-in fade-in">
+          <div className="absolute top-6 right-6 z-30 flex items-center gap-2 animate-in fade-in flex-wrap justify-end">
+            <button
+              onClick={handleQuickToggleHeroText}
+              disabled={isTogglingText}
+              className="flex items-center gap-1.5 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white border border-white/30 hover:border-emerald-400 px-3.5 py-2 rounded-full text-xs font-bold transition-all shadow-xl hover:scale-105"
+              title={isHeroTextHidden ? "Mostrar letras sobre la imagen" : "Ocultar letras y dejar solo la foto"}
+            >
+              {isHeroTextHidden ? (
+                <>
+                  <Eye size={14} className="text-emerald-400" />
+                  <span>Mostrar Letras</span>
+                </>
+              ) : (
+                <>
+                  <EyeOff size={14} className="text-amber-400" />
+                  <span>Ocultar Letras (Solo Foto)</span>
+                </>
+              )}
+            </button>
+
             <button
               onClick={() => setIsHeroModalOpen(true)}
-              className="flex items-center gap-2 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white border border-white/30 hover:border-emerald-400 px-4 py-2.5 rounded-full text-xs font-bold transition-all shadow-xl hover:scale-105 group/btn"
-              title="Cambiar imagen de portada"
+              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 backdrop-blur-md text-white border border-white/30 px-4 py-2 rounded-full text-xs font-bold transition-all shadow-xl hover:scale-105 group/btn"
+              title="Cambiar imagen o ajustar textos"
             >
-              <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center group-hover/btn:rotate-12 transition-transform">
-                <Camera size={14} />
-              </div>
-              <span>Cambiar Foto de Portada</span>
+              <Camera size={14} className="group-hover/btn:rotate-12 transition-transform" />
+              <span>Ajustar Portada</span>
             </button>
           </div>
         )}
         
-        <div className="relative z-10 text-center px-4 sm:px-6 lg:px-8">
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 tracking-tight"
-          >
-            {siteConfig?.heroTitle || "Una Aventura Más"} <br />
-            <span className="text-emerald-400">Costa Rica</span>
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl text-stone-200 mb-10 max-w-2xl mx-auto font-light"
-          >
-            {siteConfig?.heroSubtitle || "Explora los rincones más mágicos de nuestra tierra y descubre destinos internacionales inolvidables."}
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <Link 
-              to="/tours" 
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-full text-lg font-bold transition-all transform hover:scale-105 shadow-lg"
+        {/* Hero Content (Only shown if hideHeroText is false) */}
+        {!isHeroTextHidden ? (
+          <div className="relative z-10 text-center px-4 sm:px-6 lg:px-8">
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 tracking-tight"
             >
-              Explorar Tours
-            </Link>
+              {siteConfig?.heroTitle || "Una Aventura Más"} <br />
+              <span className="text-emerald-400">Costa Rica</span>
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-xl text-stone-200 mb-10 max-w-2xl mx-auto font-light"
+            >
+              {siteConfig?.heroSubtitle || "Explora los rincones más mágicos de nuestra tierra y descubre destinos internacionales inolvidables."}
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
+              <Link 
+                to="/tours" 
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-full text-lg font-bold transition-all transform hover:scale-105 shadow-lg"
+              >
+                Explorar Tours
+              </Link>
+              <a 
+                href="#nacional"
+                className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/30 px-8 py-4 rounded-full text-lg font-bold transition-all"
+              >
+                Ver Nacionales
+              </a>
+            </motion.div>
+          </div>
+        ) : (
+          /* When hero text is hidden, show a clean, elegant floating explore badge at the bottom */
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 text-center animate-bounce">
             <a 
               href="#nacional"
-              className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/30 px-8 py-4 rounded-full text-lg font-bold transition-all"
+              className="inline-flex items-center gap-2 bg-black/40 hover:bg-black/60 text-white/90 hover:text-white backdrop-blur-md border border-white/20 hover:border-white/40 px-5 py-2.5 rounded-full text-xs font-bold tracking-wide uppercase transition-all shadow-xl"
             >
-              Ver Nacionales
+              <span>Explorar Aventuras</span>
+              <ChevronDown size={16} />
             </a>
-          </motion.div>
-        </div>
+          </div>
+        )}
       </section>
 
       {/* Hero Image Modal */}
@@ -103,6 +156,7 @@ export default function Home() {
         isOpen={isHeroModalOpen}
         onClose={() => setIsHeroModalOpen(false)}
         currentImageUrl={heroImage}
+        siteConfig={siteConfig}
       />
 
       {/* Modules Section */}
