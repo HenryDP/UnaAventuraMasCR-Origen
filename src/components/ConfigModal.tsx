@@ -98,7 +98,7 @@ export default function ConfigModal({ config, isOpen, onClose }: ConfigModalProp
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h3 className="font-bold text-emerald-600 text-sm uppercase tracking-wider">Hero Section</h3>
+              <h3 className="font-bold text-emerald-600 text-sm uppercase tracking-wider">Hero Section (Portada Principal)</h3>
               <div>
                 <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Título Hero</label>
                 <input {...register('heroTitle')} className="w-full p-2.5 rounded-lg border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
@@ -108,8 +108,52 @@ export default function ConfigModal({ config, isOpen, onClose }: ConfigModalProp
                 <textarea {...register('heroSubtitle')} rows={2} className="w-full p-2.5 rounded-lg border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">URL Imagen Hero</label>
-                <input {...register('heroImageUrl')} className="w-full p-2.5 rounded-lg border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Foto Principal del Hero</label>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="text" 
+                    {...register('heroImageUrl')} 
+                    className="flex-grow p-2.5 rounded-lg border border-stone-200 focus:ring-2 focus:ring-emerald-500 outline-none text-xs" 
+                    placeholder="URL de la imagen de portada"
+                  />
+                  <input
+                    type="file"
+                    id="hero-upload-modal"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        try {
+                          let url = '';
+                          try {
+                            url = await tourService.uploadTourImage(file);
+                          } catch {
+                            const { compressImage } = await import('../utils/imageUtils');
+                            const compressed = await compressImage(file);
+                            url = await new Promise<string>((resolve, reject) => {
+                              const reader = new FileReader();
+                              reader.onload = () => resolve(reader.result as string);
+                              reader.onerror = reject;
+                              reader.readAsDataURL(compressed instanceof Blob ? compressed : file);
+                            });
+                          }
+                          setValue('heroImageUrl', url);
+                          alert('¡Foto de portada cargada exitosamente!');
+                        } catch (error) {
+                          alert("Error al subir la foto de portada");
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('hero-upload-modal')?.click()}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 shadow-sm"
+                  >
+                    <span>Subir Foto</span>
+                  </button>
+                </div>
               </div>
             </div>
 

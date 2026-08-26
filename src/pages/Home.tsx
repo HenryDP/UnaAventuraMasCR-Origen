@@ -1,28 +1,62 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight, Star, Camera, Sparkles, Image as ImageIcon } from 'lucide-react';
 import TourList from '../components/TourList';
-import { useWhatsApp } from '../context/WhatsAppContext';
 import ReviewsList from '../components/ReviewsList';
 import ReviewForm from '../components/ReviewForm';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { SiteConfig } from '../components/TourCard';
+import { useAuth } from '../context/AuthContext';
+import HeroImageModal from '../components/HeroImageModal';
 
 export default function Home() {
-  const { siteConfig } = useWhatsApp();
+  const [siteConfig, setSiteConfig] = useState<SiteConfig | null>(null);
+  const [isHeroModalOpen, setIsHeroModalOpen] = useState(false);
+  const { isAdmin } = useAuth();
+
+  useEffect(() => {
+    if (!db) return;
+    const unsubscribe = onSnapshot(doc(db, "config", "site"), (snapshot) => {
+      if (snapshot.exists()) {
+        setSiteConfig(snapshot.data() as SiteConfig);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const heroImage = siteConfig?.heroImageUrl || "https://images.unsplash.com/photo-1527489377706-5bf97e608852?auto=format&fit=crop&q=80&w=1920";
 
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[90vh] flex items-center justify-center overflow-hidden group">
         <div className="absolute inset-0 z-0">
           <img 
-            src={siteConfig?.heroImageUrl || "https://images.unsplash.com/photo-1527489377706-5bf97e608852?auto=format&fit=crop&q=80&w=1920"} 
+            src={heroImage} 
             alt="Costa Rica Landscape" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-black/40"></div>
+          <div className="absolute inset-0 bg-linear-to-b from-black/50 via-black/40 to-black/70"></div>
         </div>
+
+        {/* Admin Quick Action Button for Hero Image */}
+        {isAdmin && (
+          <div className="absolute top-6 right-6 z-20 animate-in fade-in">
+            <button
+              onClick={() => setIsHeroModalOpen(true)}
+              className="flex items-center gap-2 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white border border-white/30 hover:border-emerald-400 px-4 py-2.5 rounded-full text-xs font-bold transition-all shadow-xl hover:scale-105 group/btn"
+              title="Cambiar imagen de portada"
+            >
+              <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center group-hover/btn:rotate-12 transition-transform">
+                <Camera size={14} />
+              </div>
+              <span>Cambiar Foto de Portada</span>
+            </button>
+          </div>
+        )}
         
         <div className="relative z-10 text-center px-4 sm:px-6 lg:px-8">
           <motion.h1 
@@ -63,6 +97,13 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+
+      {/* Hero Image Modal */}
+      <HeroImageModal
+        isOpen={isHeroModalOpen}
+        onClose={() => setIsHeroModalOpen(false)}
+        currentImageUrl={heroImage}
+      />
 
       {/* Modules Section */}
       <section id="nacional" className="py-20 bg-stone-50">
